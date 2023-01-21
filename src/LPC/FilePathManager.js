@@ -2,7 +2,7 @@ const {fs} = require('fs');
 const fsPromises = require('fs').promises;
 //var configFile = JSON.parse(readFile('./app.config'));
 const path = require('path');
-const configFilePath = './app.config'
+const configFilePath = './app.configg'
 
 class SFFile{
     constructor(){
@@ -22,26 +22,35 @@ class SLFilePath{
 
 
 class SLFilePathManager{
-   /**
-    * Loads the file paths from app.config
-    */
+   
     constructor(){
         this.filePaths = [];
         this.fpgToFilesMapping = {};
         this.configFile =  {}
-        this.#loadConfig();
         console.log("** SLFilePathManager initialised")
+    }
+
+    /**
+    * Loads the file paths from app.config
+    */
+    async initialise(){
+        let success = await this.#loadConfig();
+        if(success){
+            this.#populateFilePaths();
+            console.log("** FilePaths added from app.config")
+        }
+        
     }
 
     async #loadConfig(){
         try{
             const fileData = await fsPromises.readFile(configFilePath);
             this.configFile = JSON.parse(fileData);
-            console.log(this.configFile)
-            this.#populateFilePaths();
-            console.log("** FilePaths added from app.config")
+            console.log("** app.config loaded successfully")
+            return true;
         }catch(err){
             console.log("Error reading app.config ",err)
+            return false;
         }
        
     }
@@ -85,32 +94,48 @@ class SLFilePathManager{
             console.log("Providing FPG files avaialable in cache")
             return this.fpgToFilesMapping[fpgName]
         }
-        const matchingFiles = [];
+        const matchingFiles = {};// dict of {dirPath: set of filenames}
         //problem with this is if one promise fails then everything fails
         await Promise.all(this.filePaths.map(async (filePath) => {
             if(!filePath.fpgArr.includes(fpgName)){
                 return;
             }
-            const files = await this.#getFileListInDirectoryMatchingFileNameRegex(filePath.directoryPath, filePath.fileNameRegex);
-            matchingFiles = matchingFiles.concat(files);  
+            const fileNameList = await this.#getFileListInDirectoryMatchingFileNameRegex(filePath.directoryPath, filePath.fileNameRegex);
+           
+           //populating matching files while making sure a single file is not duplicated 
+            let dirSet = matchingFiles[filePath.directoryPath];
+            if(!dirSet){
+                console.log("/fetchFilesBelongingToFPG Directory set pre-exists: false")
+                let newDirSet = new Set();
+                fileNameList.forEach(fileName => {
+                    newDirSet.add(fileName);
+                });
+                matchingFiles[filePath.directoryPath] = newDirSet;
+            }else{ 
+                console.log("/fetchFilesBelongingToFPG Directory set pre-exists: true")
+                fileNameList.forEach(fileName => {
+                    dirSet.add(fileName);
+                });
+                matchingFiles[filePath.directoryPath] = dirSet;
+            }  
           }));
 
         this.fpgToFilesMapping[fpgName]=matchingFiles;
-        console.log(`Returning Matching files and saved to cache: ${matchingFiles}`); 
+        console.log(`Returning Matching files for FPG ${fpgName} and saved to cache: ${matchingFiles}`); 
         return matchingFiles;
     }
 
     /**
      * asynchronously fetches all the file names belonging to the particular directory whose files follow the provided regex
     */
-  async #getFileListInDirectoryMatchingFileNameRegex(dirPath, regex){
-    try{
-        let files = await fs.readdir(dirPath);
-        return files.filter(file => regex.test(file));
-    }catch(err){
-        console.log("Error: /getFileListInDirectoryMatchingFileNameRegex ",err)
-    } 
-  };
+    async #getFileListInDirectoryMatchingFileNameRegex(dirPath, regex){
+        try{
+            let files = await fs.readdir(dirPath);
+            return files.filter(file => regex.test(file));
+     }catch(err){
+            console.log("Error: /getFileListInDirectoryMatchingFileNameRegex ",err)
+        } 
+    };
 
 
 

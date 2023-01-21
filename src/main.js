@@ -35,4 +35,5 @@ app.on('window-all-closed', () => {
 
 //initialising system
 let lpc = new SLLPCManager()
-console.log("end")
+lpc.initialise();
+
