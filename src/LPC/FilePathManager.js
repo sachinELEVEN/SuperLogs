@@ -2,7 +2,7 @@ const {fs} = require('fs');
 const fsPromises = require('fs').promises;
 //var configFile = JSON.parse(readFile('./app.config'));
 const path = require('path');
-const configFilePath = './app.configg'
+const configFilePath = './app.config'
 
 class SFFile{
     constructor(){
@@ -95,7 +95,7 @@ class SLFilePathManager{
             return this.fpgToFilesMapping[fpgName]
         }
         const matchingFiles = {};// dict of {dirPath: set of filenames}
-        //problem with this is if one promise fails then everything fails
+       
         await Promise.all(this.filePaths.map(async (filePath) => {
             if(!filePath.fpgArr.includes(fpgName)){
                 return;
@@ -128,58 +128,18 @@ class SLFilePathManager{
     /**
      * asynchronously fetches all the file names belonging to the particular directory whose files follow the provided regex
     */
-    async #getFileListInDirectoryMatchingFileNameRegex(dirPath, regex){
+    async #getFileListInDirectoryMatchingFileNameRegex(dirPath, fileNameRegex){
         try{
-            let files = await fs.readdir(dirPath);
-            return files.filter(file => regex.test(file));
+            let fileNameList = await fsPromises.readdir(dirPath);
+            console.log("Files ",fileNameList)
+            let regex = new RegExp(fileNameRegex);
+            return fileNameList.filter(fileName => regex.test(fileName));
      }catch(err){
             console.log("Error: /getFileListInDirectoryMatchingFileNameRegex ",err)
+            return [];
         } 
     };
 
-
-
-
-    /*
-    
-    fetchFilesBelongingToFPG(fpgName){
-        return new Promise((resolve, reject) => {
-            if(this.fpgToFilesMapping[fpgName]){
-                console.log("Providing FPG files avaialable in cache")
-                return this.fpgToFilesMapping[fpgName]
-            }
-            this.filePaths.forEach(filePath => {
-                if(filePath.fpgArr.includes(fpgName)){
-                    this.#getFileListInDirectoryMatchingFileNameRegex(filePath.directoryPath, filePath.fileNameRegex)
-                        .then(matchingFiles => {
-                            console.log(`Returning Matching files and saved to cache: ${matchingFiles}`);
-                            this.fpgToFilesMapping[fpgName]=matchingFiles;
-                            resolve(matchingFiles);
-                        })
-                        .catch(err => {
-                            console.error(`Error in finding Matching files : ${err}`);
-                            reject('operation failed');
-                        });
-                }
-            });
-        });
-    }
-    
-    
-     #getFileListInDirectoryMatchingFileNameRegex = (dirPath, regex) => {
-        return new Promise((resolve, reject) => {
-          fs.readdir(dirPath, (err, files) => {
-            if (err) {
-              reject(err);
-            } else {
-              const matchingFiles = files.filter(file => regex.test(file));
-              resolve(matchingFiles);
-            }
-          });
-        });
-      };
-*/
-  
 
     resetFPGFileListCache(){
         this.fpgToFilesMapping = {};
