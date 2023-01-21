@@ -1,6 +1,8 @@
-const { fs,readFileSync } = require('fs');
-var configFile = JSON.parse(readFileSync('./app.config'));
+const {fs} = require('fs');
+const fsPromises = require('fs').promises;
+//var configFile = JSON.parse(readFile('./app.config'));
 const path = require('path');
+const configFilePath = './app.config'
 
 class SFFile{
     constructor(){
@@ -26,8 +28,22 @@ class SLFilePathManager{
     constructor(){
         this.filePaths = [];
         this.fpgToFilesMapping = {};
-        this.#populateFilePaths();
-        console.log("** FilePaths added from app.config")
+        this.configFile =  {}
+        this.#loadConfig();
+        console.log("** SLFilePathManager initialised")
+    }
+
+    async #loadConfig(){
+        try{
+            const fileData = await fsPromises.readFile(configFilePath);
+            this.configFile = JSON.parse(fileData);
+            console.log(this.configFile)
+            this.#populateFilePaths();
+            console.log("** FilePaths added from app.config")
+        }catch(err){
+            console.log("Error reading app.config ",err)
+        }
+       
     }
 
     /**
@@ -35,7 +51,7 @@ class SLFilePathManager{
      */
     #populateFilePaths(){
        var filePathsDict = {};
-       let filePaths = configFile.FilePathCollection;
+       let filePaths = this.configFile.FilePathCollection;
         if(filePaths && Array.isArray(filePaths)){
             filePaths.forEach(filePath => {
                 let valid = filePath.DirectoryPath && filePath.FileNameRegex && !filePathsDict[filePath.DirectoryPath+filePath.FileNameRegex];
