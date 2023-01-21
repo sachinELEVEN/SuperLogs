@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const filePath = './src/index.html'
 const path = require('path')
+const SLLPCManager = require('./LPC/LPCManager.js')
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -31,3 +32,7 @@ app.on('window-all-closed', () => {
     app.quit();
   }
 });
+
+//initialising system
+let lpc = new SLLPCManager()
+console.log("end")

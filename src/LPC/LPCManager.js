@@ -1,8 +1,12 @@
-class LPCManager{
+const SLFilePathManager = require('./FilePathManager.js')
+
+//SLLPCManager - SuperLogs LogPathCollection Manager
+class SLLPCManager{
 
     
 
     constructor(){
+        this.filePathManager = new SLFilePathManager();
     }
 
     
@@ -11,3 +15,5 @@ class LPCManager{
 
 
 }
+
+module.exports = SLLPCManager;
