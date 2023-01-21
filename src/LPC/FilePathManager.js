@@ -1,5 +1,13 @@
-const { readFileSync } = require('fs');
+const { fs,readFileSync } = require('fs');
 var configFile = JSON.parse(readFileSync('./app.config'));
+const path = require('path');
+
+class SFFile{
+    constructor(){
+        this.filePath = filePath;
+        this.fileName = fileName;
+    }
+}
 
 class SLFilePath{
 
@@ -12,11 +20,14 @@ class SLFilePath{
 
 
 class SLFilePathManager{
-   
+   /**
+    * Loads the file paths from app.config
+    */
     constructor(){
         this.filePaths = [];
+        this.fpgToFilesMapping = {};
         this.#populateFilePaths();
-        console.log("FilePaths added from app.config")
+        console.log("** FilePaths added from app.config")
     }
 
     /**
@@ -48,6 +59,55 @@ class SLFilePathManager{
         console.log("File path added: ",filePath);
     }
     
+    /**
+     * Fetches all the files belonging to the particular fpgGroup async and add them to the fpgToFilesMapping cache
+     */
+    fetchFilesBelongingToFPG(fpgName){
+        return new Promise((resolve, reject) => {
+            if(this.fpgToFilesMapping[fpgName]){
+                console.log("Providing FPG files avaialable in cache")
+                return this.fpgToFilesMapping[fpgName]
+            }
+            this.filePaths.forEach(filePath => {
+                if(filePath.fpgArr.includes(fpgName)){
+                    this.#getFileListInDirectoryMatchingFileNameRegex(filePath.directoryPath, filePath.fileNameRegex)
+                        .then(matchingFiles => {
+                            console.log(`Returning Matching files and saved to cache: ${matchingFiles}`);
+                            this.fpgToFilesMapping[fpgName]=matchingFiles;
+                            resolve(matchingFiles);
+                        })
+                        .catch(err => {
+                            console.error(`Error in finding Matching files : ${err}`);
+                            reject('operation failed');
+                        });
+                }
+            });
+        });
+    }
+
+    /**
+     * asynchronously fetches all the file names belonging to the particular directory whose files follow the provided regex
+     */
+     #getFileListInDirectoryMatchingFileNameRegex = (dirPath, regex) => {
+        return new Promise((resolve, reject) => {
+          fs.readdir(dirPath, (err, files) => {
+            if (err) {
+              reject(err);
+            } else {
+              const matchingFiles = files.filter(file => regex.test(file));
+              resolve(matchingFiles);
+            }
+          });
+        });
+      };
+
+      resetFPGFileListCache(){
+        this.fpgToFilesMapping = {};
+      }
+
+    #removeFilesBelongingToFPG(fpgName){}
+
+
 }
 
 module.exports = SLFilePathManager;
