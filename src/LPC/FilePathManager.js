@@ -3,6 +3,7 @@ const fsPromises = require('fs').promises;
 //var configFile = JSON.parse(readFile('./app.config'));
 const path = require('path');
 const configFilePath = './app.config'
+const defaultFPGGroups = ["all"]//all the filePaths will have be part of these FPGs
 
 class SFFile{
     constructor(){
@@ -79,6 +80,8 @@ class SLFilePathManager{
      * Creates a SLFilePath instance and add it to the SLFilePathManager.filePaths
      */
     #createSingleDirectorySingleFilePath(directoryPath,fileNameRegex,fpgArr){
+        //Adding defaultFPGGroups
+        fpgArr = fpgArr.concat(defaultFPGGroups);
         const filePath = new SLFilePath(directoryPath,fileNameRegex,fpgArr);
         this.filePaths.push(filePath)
         console.log("File path added: ",filePath);
@@ -121,7 +124,7 @@ class SLFilePathManager{
           }));
 
         this.fpgToFilesMapping[fpgName]=matchingFiles;
-        console.log(`Returning Matching files for FPG ${fpgName} and saved to cache: ${matchingFiles}`); 
+        console.log(`Returning Matching files for FPG '${fpgName}' and saved to cache: ${matchingFiles}`); 
         return matchingFiles;
     }
 

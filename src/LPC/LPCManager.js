@@ -10,14 +10,14 @@ class SLLPCManager{
     }
 
     async initialise(){
-      await  this.filePathManager.initialise();
-      await  this.fetchFilesBelongingToFPG();
+        await  this.filePathManager.initialise();
+        await  this.fetchFilesBelongingToFPG();
     }
 
 
     async fetchFilesBelongingToFPG(){
-    let list = await this.filePathManager.fetchFilesBelongingToFPG("important")
-    console.log(list)
+        let list = await this.filePathManager.fetchFilesBelongingToFPG("all")
+        console.log(list)
     }
     
 
