@@ -1,0 +1,22 @@
+{
+  "name": "superlogs-app",
+  "version": "1.0.0",
+  "description": "A log analysing, monitoring and viewing app",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sachinELEVEN/SuperLogs.git"
+  },
+  "author": "superlogs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sachinELEVEN/SuperLogs/issues"
+  },
+  "homepage": "https://github.com/sachinELEVEN/SuperLogs#readme",
+  "devDependencies": {
+    "electron": "^22.0.3"
+  }
+}
