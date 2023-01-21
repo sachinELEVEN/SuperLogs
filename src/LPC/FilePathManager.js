@@ -75,9 +75,48 @@ class SLFilePathManager{
         console.log("File path added: ",filePath);
     }
     
+
     /**
      * Fetches all the files belonging to the particular fpgGroup async and add them to the fpgToFilesMapping cache
      */
+    async fetchFilesBelongingToFPG(fpgName){
+       
+        if(this.fpgToFilesMapping[fpgName]){
+            console.log("Providing FPG files avaialable in cache")
+            return this.fpgToFilesMapping[fpgName]
+        }
+        const matchingFiles = [];
+        //problem with this is if one promise fails then everything fails
+        await Promise.all(this.filePaths.map(async (filePath) => {
+            if(!filePath.fpgArr.includes(fpgName)){
+                return;
+            }
+            const files = await this.#getFileListInDirectoryMatchingFileNameRegex(filePath.directoryPath, filePath.fileNameRegex);
+            matchingFiles = matchingFiles.concat(files);  
+          }));
+
+        this.fpgToFilesMapping[fpgName]=matchingFiles;
+        console.log(`Returning Matching files and saved to cache: ${matchingFiles}`); 
+        return matchingFiles;
+    }
+
+    /**
+     * asynchronously fetches all the file names belonging to the particular directory whose files follow the provided regex
+    */
+  async #getFileListInDirectoryMatchingFileNameRegex(dirPath, regex){
+    try{
+        let files = await fs.readdir(dirPath);
+        return files.filter(file => regex.test(file));
+    }catch(err){
+        console.log("Error: /getFileListInDirectoryMatchingFileNameRegex ",err)
+    } 
+  };
+
+
+
+
+    /*
+    
     fetchFilesBelongingToFPG(fpgName){
         return new Promise((resolve, reject) => {
             if(this.fpgToFilesMapping[fpgName]){
@@ -100,10 +139,8 @@ class SLFilePathManager{
             });
         });
     }
-
-    /**
-     * asynchronously fetches all the file names belonging to the particular directory whose files follow the provided regex
-     */
+    
+    
      #getFileListInDirectoryMatchingFileNameRegex = (dirPath, regex) => {
         return new Promise((resolve, reject) => {
           fs.readdir(dirPath, (err, files) => {
@@ -116,10 +153,12 @@ class SLFilePathManager{
           });
         });
       };
+*/
+  
 
-      resetFPGFileListCache(){
+    resetFPGFileListCache(){
         this.fpgToFilesMapping = {};
-      }
+    }
 
     #removeFilesBelongingToFPG(fpgName){}
 
