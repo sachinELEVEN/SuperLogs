@@ -1,4 +1,3 @@
-const {fs} = require('fs');
 const fsPromises = require('fs').promises;
 //var configFile = JSON.parse(readFile('./app.config'));
 const path = require('path');
@@ -46,6 +45,7 @@ class SLFilePathManager{
 
         //LATER
         //this.runtimeFPG = fetch state from db later, do a promise.all async await 
+        console.log("** RuntimeFPG initialisation NOT IMPLEMENTED ")
         
     }
 
