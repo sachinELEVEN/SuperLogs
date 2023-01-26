@@ -151,8 +151,8 @@ console.log("Final Unrefined Chunks: ");
 async function readAndProcessChunks(filePath){
     console.timeEnd('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
      //number of chunks will always be >= no of cores
-    if (chunkReadingAndProcessingThreadCount>refinedChunks.length){
-        console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them")
+    if (chunkReadingAndProcessingThreadCount<refinedChunks.length){
+        console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
         return;
     }
     const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
