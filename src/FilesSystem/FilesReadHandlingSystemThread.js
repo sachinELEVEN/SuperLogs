@@ -33,18 +33,22 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
 const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
 //2. looping step 
 //for (const filePath of FilePaths) {
+    ///rrr
 for (i=0;i<FilePaths.length;++i) {
     //Choose a FileReaderThread randomly and pass it the file path
     let filePath = FilePaths[i];
     const fileChunkingThread = fileChunkingThreads[i];
-    fileChunkingThread.postMessage(filePath);
+    let message = {
+        'filePath':filePath,
+    }
+    fileChunkingThread.postMessage(message);
+   
     fileChunkingThread.on('message', (message) => {
-        console.log("got message", message)
-        if(message == 'kill'){
-            fileChunkingThread.terminate();
-        }
-         
-     });
+        console.log("got message from THREAD: ", message)    
+    });
+    fileChunkingThread.on('exit', (code) => {
+        console.log(`SUCCESS: Thread Closed: fileChunkingThread closed with code ${code}`);
+    });
 
 }
 

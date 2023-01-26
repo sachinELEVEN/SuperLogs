@@ -28,6 +28,7 @@ console.log("Starting FileChunkingThread")
 
 //1. initiliasing step
 const numberOfCPUCores = require('os').cpus().length;
+const thread=null;
 const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.4); // number of ChunkReadingAndProcessingThread
 //const fileProcessingThreads = numberOfCPUCores - k - m; // number of FileProcessingThreads
 const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
@@ -39,21 +40,33 @@ parentPort.on('message', (filePath) => {
    startProcessing(filePath)
 });
 
-//sending data to another thread which has the reference to this thread and is listening to this thread's message
-function sendMessageToThreadListeners(message){
-    console.log("IPC: THREAD TO PARENT:",message)
+//sending data to another main thread
+function sendMessageToParent(message){
+    console.log("IPC: THREAD TO Listeners:",message)
     parentPort.postMessage({ message });
+    
 }
 
-async function startProcessing(filePath){
+function terminateThread(){
+    let message = '/FileChunkingThread: SELF TERMINATION'
+    parentPort.close();//asking the parent to close the thread
+}
+
+async function startProcessing(message){
+    if(!message.filePath){
+        console.log("/FileChunking Thread - filePath missing!")
+        terminateThread()
+        return;
+    }
      //break the file in chunks
      console.time('ChunkingProcess TimeTaken:');
-     let chunks = await createChunks(filePath)
+     let chunks = await createChunks(message.filePath)
      console.timeEnd('ChunkingProcess TimeTaken:')
      //pass refined chunks to ChunkReadingAndProcessingThread;
      //we should maybe send a message here to the parent and kill this thread after its work is done
      //similary we should define all the different threads in the global space so we can kill them after their work is done
-     sendMessageToThreadListeners("kill")//why is is getting called before refinement - it appears like this but is getting called correctly
+     //AT THE END- Killing the thread after its work is done
+     terminateThread()//why is is getting called before refinement - it appears like this but is getting called correctly
 
 }
 
