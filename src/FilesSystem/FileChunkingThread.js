@@ -160,6 +160,10 @@ async function readAndProcessChunks(filePath){
         chunkReadingAndProcessingThread = chunkReadingAndProcessingThreads[i];
         let message = {
             'filePath':filePath,
+            'chunkStart':refinedChunks[i].f,
+            'chunkEnd':refinedChunks[i].r,
+            'chunkId':refinedChunks[i].id,
+
         }
         chunkReadingAndProcessingThread.postMessage(message);
        
