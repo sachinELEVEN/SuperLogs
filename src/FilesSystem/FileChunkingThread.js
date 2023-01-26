@@ -1,15 +1,15 @@
 /*
 Also pay attention which threads remain in memory and why is the program not terminating
-Task of FileReaderThread
+Task of FileChunkingThread
 
-1. Creates m SubFileReaderThread(depends on the number of CPU cores - need to find its optimum value)
+1. Creates m ChunkReadingAndProcessingThread(depends on the number of CPU cores - need to find its optimum value)
 2. Breaks the file represented by the file path and breaks it into m chunks each chunk is continuous, refine chunks
-3. Loop through refined chunks(refinedChunks) created and passes the i th chunk to the i th SubFileReaderThread along with the file path
+3. Loop through refined chunks(refinedChunks) created and passes the i th chunk to the i th ChunkReadingAndProcessingThread along with the file path
 
 ONE BIG ISSUE AS OF NOW IS THAT WE ARE CREATING TOO MANY THREADS NEED TO MINIMISE THEM AND NOT CREATE N THREAD EACH NESTED THREAD, THREAD POOL SHOULD BE DEFINED IN THE BEGINNING
 There still are issues in it i think - rear end is not working correctly
 
-Change name of files :- FileReadHandlingSystemThread, FileChunkningThread, ChunkReadingAndProcessingThread
+Change name of files :- FilesSystemReadHandlingSystemThread, FileChunkingThread, ChunkReadingAndProcessingThread
 */
 const { Worker, workerData, parentPort } = require('worker_threads');
 const { deflateSync } = require('zlib');
@@ -18,21 +18,19 @@ const fs = require('fs');
 const {EOL} = require('os');
 const allowChunking = true;//if false a single file will be read as a whole; good for small size files and files with very very very long line
 const megaByte = 1000000//1 MB
-const minFileSizeForChunkning = 0;//300*megaByte;//in bytes MAKE THIS A PROPER VALUE
+const minFileSizeForChunking = 0;//300*megaByte;//in bytes MAKE THIS A PROPER VALUE
 const encoding = 'utf8';//so this encoding does not support emoji i think
 //Our program will not work efficiently for program that has very very big single lines because how we create chunks > 100MB or more, if this is the case turn off chunking
 const refinedChunks = [];//dictionary of value chunk values like [[1,2],[3,5],[69]] [start,end]
 
-//const subFileReaderThreads = new Array(m).fill(null).map(() => new Worker(__filename));
-//const fileProcessingThreads = new Array(n).fill(null).map(() => new Worker(__filename));
 
-console.log("Starting FileReaderThread")
+console.log("Starting FileChunkingThread")
 
 //1. initiliasing step
 const numberOfCPUCores = require('os').cpus().length;
-const subFileReaderThreadsCount = Math.ceil(numberOfCPUCores * 0.4); // number of SubFileReaderThreads
+const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.4); // number of ChunkReadingAndProcessingThread
 //const fileProcessingThreads = numberOfCPUCores - k - m; // number of FileProcessingThreads
-const subFileReaderThreads = new Array(subFileReaderThreadsCount).fill(null).map(() => new Worker('./SubFileReaderThread.js'));
+const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
 
 //2. Breaking the file in chunks - tjid id diificult because it hard to break it into chunks such that it contains fulll lines
 
@@ -52,7 +50,7 @@ async function startProcessing(filePath){
      console.time('ChunkingProcess TimeTaken:');
      let chunks = await createChunks(filePath)
      console.timeEnd('ChunkingProcess TimeTaken:')
-     //pass refined chunks to subFileReaderThread;
+     //pass refined chunks to ChunkReadingAndProcessingThread;
      //we should maybe send a message here to the parent and kill this thread after its work is done
      //similary we should define all the different threads in the global space so we can kill them after their work is done
      sendMessageToThreadListeners("kill")//why is is getting called before refinement - it appears like this but is getting called correctly
@@ -65,7 +63,7 @@ async function createChunks(filePath){
         return [];
     }
 
-    if(!allowChunking || sizeInBytes<minFileSizeForChunkning||subFileReaderThreadsCount==1){
+    if(!allowChunking || sizeInBytes<minFileSizeForChunking||chunkReadingAndProcessingThreadCount==1){
         //no chunking when processor count/thread = 1
         return [[0,sizeInBytes-1]];//0 to n-1th byte reading // CHECK IF FILE READING STARTS FROM OTH BYTE OR FIRST BYTE
     }
@@ -75,10 +73,10 @@ async function createChunks(filePath){
     //CHUNKING PART 1:- Breaking into rough chunks (do not contain complete lines)
     //TODO Assumption byte reading is possible, today's world 1 char more
     //Break into k equal size chunks
-    //here k = subFileReaderThreadsCount// number of chunks == number of threads that will read those chunks
+    //here k = chunkReadingAndProcessingThreadCount// number of chunks == number of threads that will read those chunks
     //In total we want k chunks, first break into k-1 chunks, each such chunk will have an integeger values because of Math.floor, kth lastChunkSize = totalSize - k*standardChunkSize
     //loop from i*standardChunkSize to (i+1)*standardChunkSize-1, i varies from 0 to k-2, k-1 th element will be handled separately
-    let k = subFileReaderThreadsCount;
+    let k = chunkReadingAndProcessingThreadCount;
     let standardChunkSize = Math.floor(sizeInBytes/(k-1));
     let lastChunkSize = sizeInBytes - standardChunkSize*(k-1);
    
@@ -128,13 +126,13 @@ console.log("Final Unrefined Chunks: ");
 
 //3. looping step 
 // for (const filePath of FilePaths) {
-//     //Choose a FileReaderThread randomly and pass it the file path
-//     const fileReaderThread = fileReaderThreads[Math.floor(Math.random() * k)];
-//     fileReaderThread.postMessage({ filePath });
+//     //Choose a ChunkReadingAndProcessingThread randomly and pass it the file path
+//     const ChunkReadingAndProcessingThread = ChunkReadingAndProcessingThreads[Math.floor(Math.random() * k)];
+//     ChunkReadingAndProcessingThread.postMessage({ filePath });
 
 // }
 
-console.log("Finished FileReaderThread")
+console.log("Finished FileChunkingThread")
 
 
 /************UTILITY METHODS */
@@ -228,9 +226,9 @@ async function readChunkForRefinement(filePath,chunkStartIndex,chunkEndIndex,chu
         }
             //#Check how to terminate the stream, and return promise now here I think we should do some manual processing
         }).on('end', function() {
-            console.log('/fileReaderThread: front end of the chunk refined');
+            console.log('/FileChunkingThread: front end of the chunk refined');
         }).on("close", function (err) {
-            console.log("/fileReaderThread: front end: Stream has been destroyed. Waiting for th other end :",workProgress==finishedWork);
+            console.log("/FileChunkingThread: front end: Stream has been destroyed. Waiting for th other end :",workProgress==finishedWork);
             //it may happen that sometimes when file data is small this may not call, no issues for us because we are not observing it
         });
 
@@ -277,9 +275,9 @@ async function readChunkForRefinement(filePath,chunkStartIndex,chunkEndIndex,chu
         }).on('end', function() {
             //this is called 
             //this is called
-            console.log('/fileReaderThread: rear end of the chunk refined');
+            console.log('/FileChunkingThread: rear end of the chunk refined');
         }).on("close", function (err) {
-            console.log("/fileReaderThread: rear end: Stream has been destroyed. Waiting for the other end :",workProgress==finishedWork);
+            console.log("/FileChunkingThread: rear end: Stream has been destroyed. Waiting for the other end :",workProgress==finishedWork);
             //it may happen that sometimes when file data is small this may not call, no issues for us because we are not observing it
         });
    
@@ -299,7 +297,7 @@ function processChunkReadData(data,readHead,increment,isFrontEnd, fileSize,){
         
         if(str == EOL || readHead >= fileSize-increment){
             
-            console.log("/fileReaderThread Chunk", eof ? "eof reached.": "LF char found.","Stream should be destroyed now. Front end ",isFrontEnd)
+            console.log("/FileChunkingThread Chunk", eof ? "eof reached.": "LF char found.","Stream should be destroyed now. Front end ",isFrontEnd)
             
             
             //update the front or rear indeces

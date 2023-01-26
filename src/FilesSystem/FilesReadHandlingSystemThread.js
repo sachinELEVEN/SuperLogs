@@ -27,21 +27,21 @@ console.log("Starting FilesReadHandlingSystemThread")
 const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
 const FilesContent = {};
 const numberOfCPUCores = require('os').cpus().length;
-const fileReaderThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), FilePaths.length); // number of FileReaderThreads
+const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), FilePaths.length); // number of FileReaderThreads
 //const subFileReaderThreads = Math.ceil(numberOfCPUCores * 0.2); // number of SubFileReaderThreads
 //const fileProcessingThreads = numberOfCPUCores - k - m; // number of FileProcessingThreads
-const fileReaderThreads = new Array(fileReaderThreadsCount).fill(null).map(() => new Worker('./FileReaderThread.js'));
+const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
 //2. looping step 
 //for (const filePath of FilePaths) {
 for (i=0;i<FilePaths.length;++i) {
     //Choose a FileReaderThread randomly and pass it the file path
     let filePath = FilePaths[i];
-    const fileReaderThread = fileReaderThreads[i];
-    fileReaderThread.postMessage(filePath);
-    fileReaderThread.on('message', (message) => {
+    const fileChunkingThread = fileChunkingThreads[i];
+    fileChunkingThread.postMessage(filePath);
+    fileChunkingThread.on('message', (message) => {
         console.log("got message", message)
         if(message == 'kill'){
-            fileReaderThread.terminate();
+            fileChunkingThread.terminate();
         }
          
      });
