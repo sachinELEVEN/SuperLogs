@@ -155,7 +155,9 @@ async function readAndProcessChunks(filePath){
         console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
         return;
     }
-    const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
+    //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
+    //which means some of those threads are unused and always in memory - we do not want that.
+    const chunkReadingAndProcessingThreads = new Array(refinedChunks.length).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
     for(i=0;i<refinedChunks.length;++i){
         chunkReadingAndProcessingThread = chunkReadingAndProcessingThreads[i];
         let message = {
