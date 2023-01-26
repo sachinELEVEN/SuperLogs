@@ -23,8 +23,13 @@
   "build": {
     "extraResources": [
       {
-        "filter": ["./app.config"]
+        "filter": [
+          "./app.config"
+        ]
       }
     ]
+  },
+  "dependencies": {
+    "event-stream": "^4.0.1"
   }
 }
