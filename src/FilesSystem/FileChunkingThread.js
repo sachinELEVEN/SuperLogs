@@ -40,21 +40,21 @@ parentPort.on('message', (filePath) => {
    startProcessing(filePath)
 });
 
-//sending data to another main thread
+//sending data to the parent thread which I think main thread w
 function sendMessageToParent(message){
-    console.log("IPC: THREAD TO Listeners:",message)
-    parentPort.postMessage({ message });
+    parentPort.postMessage(message );
     
 }
 
 function terminateThread(){
     let message = '/FileChunkingThread: SELF TERMINATION'
+    sendMessageToParent(message)
     parentPort.close();//asking the parent to close the thread
 }
 
 async function startProcessing(message){
     if(!message.filePath){
-        console.log("/FileChunking Thread - filePath missing!")
+        console.log("In FileChunkingThread /FileChunking Thread - filePath missing!")
         terminateThread()
         return;
     }
