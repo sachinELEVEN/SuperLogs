@@ -29,7 +29,7 @@ console.log("Starting FileChunkingThread")
 //1. initiliasing step
 const numberOfCPUCores = require('os').cpus().length;
 const thread=null;
-const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.4); // number of ChunkReadingAndProcessingThread
+const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.8); // number of ChunkReadingAndProcessingThread
 //const fileProcessingThreads = numberOfCPUCores - k - m; // number of FileProcessingThreads
 
 //2. Breaking the file in chunks - tjid id diificult because it hard to break it into chunks such that it contains fulll lines

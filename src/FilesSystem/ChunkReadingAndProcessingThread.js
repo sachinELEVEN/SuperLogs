@@ -43,7 +43,8 @@ parentPort.on('message', (message) => {
 async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
     return new Promise(async (resolve) => {
         let encoding = 'utf8'
-        const readChunkSize = 2048;
+        const KB = 1024;
+        const readChunkSize = 32*KB;//THIS WAS THE BEST IN PRACTICAL RESULTS
         //var readStream_frontEnd = fs.createReadStream(filePath,{start: chunkStartIndex, end: fileSize-1, highWaterMark: localChunkSize, encoding: encoding});
         console.time('ChunkReadingAndProcessing TimeTaken:');
         var  stream = fs.createReadStream(filePath,{start: startIdx, end: endIdx, highWaterMark: readChunkSize, encoding: encoding})

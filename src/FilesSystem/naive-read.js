@@ -10,7 +10,7 @@ This file is there so that we can do comparison like how fast is our readfilesys
 
 console.time('Naive Reading Approach');
 //const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
-const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
+const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 //const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 
 let promises = [];
