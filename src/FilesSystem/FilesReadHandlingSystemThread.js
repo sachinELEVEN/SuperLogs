@@ -24,8 +24,9 @@ const { Worker, workerData, parentPort } = require('worker_threads');
 
 
 //1. initiliasing step
-//const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
-const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
+const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
+//const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
+//const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 const FilesContent = {};
 const numberOfCPUCores = require('os').cpus().length;
 const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), FilePaths.length); // number of FileReaderThreads

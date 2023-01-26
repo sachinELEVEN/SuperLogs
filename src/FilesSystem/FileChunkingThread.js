@@ -31,7 +31,6 @@ const numberOfCPUCores = require('os').cpus().length;
 const thread=null;
 const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.4); // number of ChunkReadingAndProcessingThread
 //const fileProcessingThreads = numberOfCPUCores - k - m; // number of FileProcessingThreads
-const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
 
 //2. Breaking the file in chunks - tjid id diificult because it hard to break it into chunks such that it contains fulll lines
 
@@ -63,6 +62,7 @@ async function startProcessing(message){
      let chunks = await createChunks(message.filePath)
      console.timeEnd('ChunkingProcess TimeTaken:')
      //pass refined chunks to ChunkReadingAndProcessingThread;
+     readAndProcessChunks(message.filePath)
      //we should maybe send a message here to the parent and kill this thread after its work is done
      //similary we should define all the different threads in the global space so we can kill them after their work is done
      //AT THE END- Killing the thread after its work is done
@@ -137,6 +137,7 @@ console.log("Final Unrefined Chunks: ");
 
 
 
+
 //3. looping step 
 // for (const filePath of FilePaths) {
 //     //Choose a ChunkReadingAndProcessingThread randomly and pass it the file path
@@ -145,7 +146,33 @@ console.log("Final Unrefined Chunks: ");
 
 // }
 
-console.log("Finished FileChunkingThread")
+//Loop through refined chunks(refinedChunks) created and passes the i th chunk to the i th ChunkReadingAndProcessingThread along with the file path
+//Passes each refined chunk to a separate thread to read that chunk and process its data
+async function readAndProcessChunks(filePath){
+    console.timeEnd('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
+     //number of chunks will always be >= no of cores
+    if (chunkReadingAndProcessingThreadCount>refinedChunks.length){
+        console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them")
+        return;
+    }
+    const chunkReadingAndProcessingThreads = new Array(chunkReadingAndProcessingThreadCount).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
+    for(i=0;i<refinedChunks.length;++i){
+        chunkReadingAndProcessingThread = chunkReadingAndProcessingThreads[i];
+        let message = {
+            'filePath':filePath,
+        }
+        chunkReadingAndProcessingThread.postMessage(message);
+       
+        chunkReadingAndProcessingThread.on('message', (message) => {
+            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ", message)    
+        });
+        chunkReadingAndProcessingThread.on('exit', (code) => {
+            console.log(`In fileReadHandlingSystemThread: SUCCESS: Thread Closed: fileChunkingThread closed with code ${code}`);
+        });
+   }
+}
+
+
 
 
 /************UTILITY METHODS */
