@@ -75,10 +75,15 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.log("Read entire chunk : Numr: ",linesArr.length)
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
-                console.log(linesArr[0])
-                const {uint8Array, byteOffsets} = convertTo_Uint8_typed_deallocate(linesArr);
+                let og = linesArr[43534]
+                const {uint8Array, byteOffsets} = convertTo_Uint8_typed_fast(linesArr);
                //linesArr = [];
-               getLine(uint8Array,byteOffsets,0)
+               //getLine(uint8Array,byteOffsets,0)
+               if(og == getLineFast(uint8Array,byteOffsets,43534)){
+                console.log("YES SAME")
+               }else{
+                console.log("NOT SAME")
+               }
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 //ask chatgpt how to read from this
                 //convert standard array to a typed array to save space
@@ -95,22 +100,16 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
 
 }
 
-function getLine(uint8Array, byteOffsets,index){
-    const desiredStringIndex = index;
-    const startIndex = byteOffsets[desiredStringIndex];
-    const endIndex = byteOffsets[desiredStringIndex+1];
-    
-    const decoder = new TextDecoder();
-    const desiredStringBytes = uint8Array.slice(startIndex, endIndex);
-    const desiredString = decoder.decode(desiredStringBytes);
-    console.log(desiredString); // "Hello"
+
+
+function getLineFast(uint8Array, byteOffsets,index){
+    let start = byteOffsets[index];
+    let end = byteOffsets[index+1];
+    return new TextDecoder().decode(uint8Array.slice(start,end));
 }
 
 //this takes more than reading time -> takes around 3s whereas read takes 2s for 1GB file
-//this was more efficient than uint_8
-//This reduced the space req for 1GB data from 2.25 to 1.17->256MB is it losing data?, which is fine for a 1.05 GB file
-//search what is uint8 string, maybe it losingg data dooes not follow its pattern
-function convertTo_Uint8_typed(strArray) {
+function convertTo_Uint8_typed_fast(strArray) {
     // Calculate the total number of bytes required for the final array
     let totalBytes = 0;
     for (let i = 0; i < strArray.length; i++) {
@@ -135,43 +134,16 @@ function convertTo_Uint8_typed(strArray) {
       uint8Array.set(stringAsUint8, offset);
       // Update the offset for the next string
       offset += stringAsUint8.length;
-      strArray[i] = null;
     }
-    strArray = null;
-  return;
-    //return uint8Array;
-  }
-
-  function convertTo_Uint8_typed_deallocate(strArray) {
-    // Create an empty Uint8Array
-    let byteOffsets = [];
+    // Create an Int32Array view on the ArrayBuffer to store the byte offsets
+    const byteOffsets = new Int32Array(strArray.length);
     let currentOffset = 0;
-    let totalBytes = 0;
-    // Iterate over the array of strings to calculate the total number of bytes required
     for (let i = 0; i < strArray.length; i++) {
-        totalBytes += new TextEncoder().encode(strArray[i]).length;
         byteOffsets[i] = currentOffset;
         currentOffset += new TextEncoder().encode(strArray[i]).length;
     }
-    // Create a Uint8Array with the total number of bytes
-    const uint8Array = new Uint8Array(totalBytes);
-    // Create a TextEncoder instance to avoid creating a new one for each iteration
-    const encoder = new TextEncoder();
-    // Keep track of the current offset in the final array
-    let offset = 0;
-    // Iterate over the array of strings
-    for (let i = 0; i < strArray.length; i++) {
-        // Encode the string to a Uint8Array using the TextEncoder instance
-        const stringAsUint8 = encoder.encode(strArray[i]);
-        // Copy the current string's Uint8Array to the final array
-        uint8Array.set(stringAsUint8, offset);
-        // Update the offset for the next string
-        offset += stringAsUint8.length;
-        strArray[i] = null;
-    }
-    strArray = null;
     return {uint8Array, byteOffsets};
-}
+  }
 
 
   
