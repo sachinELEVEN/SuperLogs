@@ -75,15 +75,27 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.log("Read entire chunk : Numr: ",linesArr.length)
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
-                let og = linesArr[43534]
-                const {uint8Array, byteOffsets} = convertTo_Uint8_typed_fast(linesArr);
+                console.time("Array FT")
+                linesArr[233534]
+                linesArr[63443]
+                linesArr[534]
+                linesArr[3534]
+                console.timeEnd("Array FT")
+                console.log(roughSizeOfObject(linesArr)/(KB*KB)); // Output: 1024
+              //  const {uint8Array, byteOffsets} = convertTo_Uint8_typed_fast(linesArr);
+               // console.log(uint8Array.byteLength/(KB*KB)+(byteOffsets.byteLength/(KB*KB))); // Output: 1024
                //linesArr = [];
-               //getLine(uint8Array,byteOffsets,0)
-               if(og == getLineFast(uint8Array,byteOffsets,43534)){
-                console.log("YES SAME")
-               }else{
-                console.log("NOT SAME")
-               }
+            //    console.time("Buffer FT")
+            //    getLineFast(uint8Array,byteOffsets,233534)
+            //    getLineFast(uint8Array,byteOffsets,63443)
+            //    getLineFast(uint8Array,byteOffsets,534)
+            //    getLineFast(uint8Array,byteOffsets,3534)
+            //    console.timeEnd("Buffer FT")
+            //    if(og == getLineFast(uint8Array,byteOffsets,43534)){
+            //     console.log("YES SAME")
+            //    }else{
+            //     console.log("NOT SAME")
+            //    }
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 //ask chatgpt how to read from this
                 //convert standard array to a typed array to save space
@@ -101,13 +113,54 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
 }
 
 
-
+//This might not be the O(1) time complexity so not of good use to us because array provide O(1) which is what we want
 function getLineFast(uint8Array, byteOffsets,index){
     let start = byteOffsets[index];
     let end = byteOffsets[index+1];
     return new TextDecoder().decode(uint8Array.slice(start,end));
 }
 
+
+
+//surprisingle size for array is also coming out to be around 1.8 GB same as ArrayBuffer
+function roughSizeOfObject( object ) {
+
+    var objectList = [];
+
+    var recurse = function( value )
+    {
+        var bytes = 0;
+
+        if ( typeof value === 'boolean' ) {
+            bytes = 4;
+        }
+        else if ( typeof value === 'string' ) {
+            bytes = value.length * 2;
+        }
+        else if ( typeof value === 'number' ) {
+            bytes = 8;
+        }
+        else if
+        (
+            typeof value === 'object'
+            && objectList.indexOf( value ) === -1
+        )
+        {
+            objectList[ objectList.length ] = value;
+
+            for( i in value ) {
+                bytes+= 8; // an assumed existence overhead
+                bytes+= recurse( value[i] )
+            }
+        }
+
+        return bytes;
+    }
+
+    return recurse( object );
+}
+
+//generates 1.8GB data from 1GB file idk why is possible
 //this takes more than reading time -> takes around 3s whereas read takes 2s for 1GB file
 function convertTo_Uint8_typed_fast(strArray) {
     // Calculate the total number of bytes required for the final array

@@ -16,7 +16,9 @@ const { deflateSync } = require('zlib');
 const fsPromises = require('fs').promises;
 const fs = require('fs');
 const {EOL} = require('os');
-const allowChunking = true;//if false a single file will be read as a whole; good for small size files and files with very very very long line
+const { resolve } = require('path');
+const { rejects } = require('assert');
+const allowChunking = false;//if false a single file will be read as a whole; good for small size files and files with very very very long line
 const megaByte = 1000000//1 MB
 const minFileSizeForChunking = 0;//300*megaByte;//in bytes MAKE THIS A PROPER VALUE
 const encoding = 'utf8';//so this encoding does not support emoji i think
@@ -73,12 +75,22 @@ async function startProcessing(message){
 async function createChunks(filePath){
     const sizeInBytes = await fileSize(filePath)  //BIG ASSUMPTION THIS IS VERY FAST - VERIFY THIS.
     if (sizeInBytes == -1){
-        return [];
+        resolve('done')
+        return;
     }
 
     if(!allowChunking || sizeInBytes<minFileSizeForChunking||chunkReadingAndProcessingThreadCount==1){
         //no chunking when processor count/thread = 1
-        return [[0,sizeInBytes-1]];//0 to n-1th byte reading // CHECK IF FILE READING STARTS FROM OTH BYTE OR FIRST BYTE
+       let chunkIndexPair = {}
+        chunkIndexPair['f']= 0;//front end
+        chunkIndexPair['r']= sizeInBytes-1;//rear end
+        chunkIndexPair['id'] = 0;
+       
+          //return promise here with the updated chunk boundry values #TODO
+          refinedChunks.push(chunkIndexPair);
+          resolve('done')
+          return;
+        //return [[0,sizeInBytes-1]];//0 to n-1th byte reading // CHECK IF FILE READING STARTS FROM OTH BYTE OR FIRST BYTE
     }
 
     console.log("Starting the chunking process")
