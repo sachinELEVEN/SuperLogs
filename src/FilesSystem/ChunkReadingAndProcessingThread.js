@@ -5,8 +5,8 @@ const { addListener } = require('process');
 const threadName = "ChunkReadingAndProcessingThread";
 es = require('event-stream');
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
-//if the below flag is false and line contains ascii, that line will be ignored
-const allowOnlyASCII = false;
+//if the below flag is true and line contains ascii, that line will be ignored
+const allowOnlyASCII = true;
 //Receiving data from another thread which has the reference to this thread
 parentPort.on('message', (message) => {
     startProcessing(message)
@@ -46,7 +46,7 @@ parentPort.on('message', (message) => {
 
  let lines = [];//array Uint8Array/normal array depending on value of allowAsciiOnly
  let numr=0;
- let tsize = 0;
+ //let tsize = 0;
  //let lines = new Uint8Array();//idea of using typed array of utf-8
 async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
     return new Promise(async (resolve) => {
@@ -69,15 +69,15 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 resolve('failed')
             })
             .on('end',function(){
-                console.log("Read entire chunk : Numr: ",linesArr.length)
+                console.log("Read entire chunk : Numr: ",lines.length)
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
               
                 
-               console.log(tsize/(KB*KB)); //out put in mb
+              // console.log(tsize/(KB*KB)); //out put in mb
            
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
-                //resolve('done')
+                resolve('done')
             })
 
         
@@ -106,17 +106,17 @@ function addLine(line){
 
     if (!allowOnlyASCII){
         //use the js arrays to store data, since everything will be stored as is
+        // tsize+=line.length;
         lines.push(line);
         return;
     }
 
-
-    let uint8Array = sl_convertToUTF8('�');
-    tsize+=uint8Array.byteLength;//this is double
+//When ascii only is allowed convert to utf8, to space save
+    let uint8Array = sl_convertToUTF8(line);
     if(allowOnlyASCII && line.length != uint8Array.byteLength){
         //Non Ascii character in the line - ignoring it
     }else{
-      tsize+=uint8Array.byteLength;
+    //   tsize+=uint8Array.byteLength;
       lines.push(uint8Array)
     }
     return;
