@@ -112,7 +112,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
 
 }
 
-
+//array stores 1.9 GB for 1  gb, it is taking double space because in js scripts are stored as UTF 16, so 1 byte to 2 byte
 //This might not be the O(1) time complexity so not of good use to us because array provide O(1) which is what we want
 function getLineFast(uint8Array, byteOffsets,index){
     let start = byteOffsets[index];
@@ -123,42 +123,7 @@ function getLineFast(uint8Array, byteOffsets,index){
 
 
 //surprisingle size for array is also coming out to be around 1.8 GB same as ArrayBuffer
-function roughSizeOfObject( object ) {
 
-    var objectList = [];
-
-    var recurse = function( value )
-    {
-        var bytes = 0;
-
-        if ( typeof value === 'boolean' ) {
-            bytes = 4;
-        }
-        else if ( typeof value === 'string' ) {
-            bytes = value.length * 2;
-        }
-        else if ( typeof value === 'number' ) {
-            bytes = 8;
-        }
-        else if
-        (
-            typeof value === 'object'
-            && objectList.indexOf( value ) === -1
-        )
-        {
-            objectList[ objectList.length ] = value;
-
-            for( i in value ) {
-                bytes+= 8; // an assumed existence overhead
-                bytes+= recurse( value[i] )
-            }
-        }
-
-        return bytes;
-    }
-
-    return recurse( object );
-}
 
 //generates 1.8GB data from 1GB file idk why is possible
 //this takes more than reading time -> takes around 3s whereas read takes 2s for 1GB file
