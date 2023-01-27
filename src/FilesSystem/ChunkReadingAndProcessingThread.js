@@ -1,8 +1,12 @@
 const { Worker, workerData, parentPort } = require('worker_threads');
 const fsPromises = require('fs').promises;
 const fs = require('fs');
+const { addListener } = require('process');
 const threadName = "ChunkReadingAndProcessingThread";
 es = require('event-stream');
+//if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
+//if the below flag is false and line contains ascii, that line will be ignored
+const allowOnlyASCII = false;
 //Receiving data from another thread which has the reference to this thread
 parentPort.on('message', (message) => {
     startProcessing(message)
@@ -40,9 +44,9 @@ parentPort.on('message', (message) => {
  
  }
 
- //let lines = [];
+ let lines = [];//array Uint8Array/normal array depending on value of allowAsciiOnly
  let numr=0;
- let linesArr = [];
+ let tsize = 0;
  //let lines = new Uint8Array();//idea of using typed array of utf-8
 async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
     return new Promise(async (resolve) => {
@@ -56,14 +60,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
             .pipe(es.mapSync(function(line){
               //  console.log(line);
              // lines.push(line);
-             //this might be slow, so first store data in general array and then convert them to this to save space,
-             //so both reading and writing are efficient
-           //  const stringAsUint8 = new TextEncoder().encode(line);
-            // Use the `concat` method to add the string to the existing Uint8Array
-            //lines = lines.from(lines.concat(stringAsUint8));
-           // lines = new Uint8Array([...lines, ...stringAsUint8]); this hangs the code
-            // console.log(lines[numr]);
-            linesArr.push(line);
+             addLine(line);
                 //s.pause();
             //s.resume();
             })
@@ -75,31 +72,11 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.log("Read entire chunk : Numr: ",linesArr.length)
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
-                console.time("Array FT")
-                linesArr[233534]
-                linesArr[63443]
-                linesArr[534]
-                linesArr[3534]
-                console.timeEnd("Array FT")
-                console.log(roughSizeOfObject(linesArr)/(KB*KB)); // Output: 1024
-              //  const {uint8Array, byteOffsets} = convertTo_Uint8_typed_fast(linesArr);
-               // console.log(uint8Array.byteLength/(KB*KB)+(byteOffsets.byteLength/(KB*KB))); // Output: 1024
-               //linesArr = [];
-            //    console.time("Buffer FT")
-            //    getLineFast(uint8Array,byteOffsets,233534)
-            //    getLineFast(uint8Array,byteOffsets,63443)
-            //    getLineFast(uint8Array,byteOffsets,534)
-            //    getLineFast(uint8Array,byteOffsets,3534)
-            //    console.timeEnd("Buffer FT")
-            //    if(og == getLineFast(uint8Array,byteOffsets,43534)){
-            //     console.log("YES SAME")
-            //    }else{
-            //     console.log("NOT SAME")
-            //    }
+              
+                
+               console.log(tsize/(KB*KB)); //out put in mb
+           
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
-                //ask chatgpt how to read from this
-                //convert standard array to a typed array to save space
-
                 //resolve('done')
             })
 
@@ -112,14 +89,63 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
 
 }
 
-//array stores 1.9 GB for 1  gb, it is taking double space because in js scripts are stored as UTF 16, so 1 byte to 2 byte
-//This might not be the O(1) time complexity so not of good use to us because array provide O(1) which is what we want
-function getLineFast(uint8Array, byteOffsets,index){
-    let start = byteOffsets[index];
-    let end = byteOffsets[index+1];
-    return new TextDecoder().decode(uint8Array.slice(start,end));
+
+//CONVERTING JS STRINGS UTF16 TO UTF8 FOR USE IN OUR SYSTEM AS THEY CAUSE VERY HIGH MEMORY USAGE IN CASES WHERE ONLY ASCII CHARACTERS ALLOWED
+
+
+function getLine(index){
+    if (!allowOnlyASCII){
+        //use the js arrays to store data, since everything will be stored as is
+       return lines[index]
+    }
+   return sl_convertToUTF16(lines[index]);
 }
 
+
+function addLine(line){
+
+    if (!allowOnlyASCII){
+        //use the js arrays to store data, since everything will be stored as is
+        lines.push(line);
+        return;
+    }
+
+
+    let uint8Array = sl_convertToUTF8('�');
+    tsize+=uint8Array.byteLength;//this is double
+    if(allowOnlyASCII && line.length != uint8Array.byteLength){
+        //Non Ascii character in the line - ignoring it
+    }else{
+      tsize+=uint8Array.byteLength;
+      lines.push(uint8Array)
+    }
+    return;
+}
+
+//Do not access directly
+function sl_convertToUTF8(str){
+    try{
+        const strAsUint8 = new TextEncoder().encode(str);
+        return strAsUint8;
+    }catch(e){
+        console.log("failed to encode")
+        return null;
+    }
+    
+   // console.log(strAsUint8.byteLength)
+   
+}
+
+//Do not access directly
+function sl_convertToUTF16(uint8Array){
+    const utf8Decoder = new TextDecoder();//define global
+    const decodedString = utf8Decoder.decode(uint8Array);
+    //console.log(decodedString);
+    return decodedString;
+}
+
+//array stores 1.9 GB for 1  gb, it is taking double space because in js scripts are stored as UTF 16, so 1 byte to 2 byte
+//This might not be the O(1) time complexity so not of good use to us because array provide O(1) which is what we want
 
 
 //surprisingle size for array is also coming out to be around 1.8 GB same as ArrayBuffer
@@ -127,42 +153,6 @@ function getLineFast(uint8Array, byteOffsets,index){
 
 //generates 1.8GB data from 1GB file idk why is possible
 //this takes more than reading time -> takes around 3s whereas read takes 2s for 1GB file
-function convertTo_Uint8_typed_fast(strArray) {
-    // Calculate the total number of bytes required for the final array
-    let totalBytes = 0;
-    for (let i = 0; i < strArray.length; i++) {
-      totalBytes += new TextEncoder().encode(strArray[i]).length;
-    }
-  
-    // Create an ArrayBuffer with the total number of bytes
-    const buffer = new ArrayBuffer(totalBytes);
-    // Create a Uint8Array view on the ArrayBuffer
-    const uint8Array = new Uint8Array(buffer);
-  
-    // Create a TextEncoder instance to avoid creating a new one for each iteration
-    const encoder = new TextEncoder();
-  
-    // Keep track of the current offset in the final array
-    let offset = 0;
-    // Iterate over the array of strings
-    for (let i = 0; i < strArray.length; i++) {
-      // Encode the string to a Uint8Array using the TextEncoder instance
-      const stringAsUint8 = encoder.encode(strArray[i]);
-      // Copy the current string's Uint8Array to the final array
-      uint8Array.set(stringAsUint8, offset);
-      // Update the offset for the next string
-      offset += stringAsUint8.length;
-    }
-    // Create an Int32Array view on the ArrayBuffer to store the byte offsets
-    const byteOffsets = new Int32Array(strArray.length);
-    let currentOffset = 0;
-    for (let i = 0; i < strArray.length; i++) {
-        byteOffsets[i] = currentOffset;
-        currentOffset += new TextEncoder().encode(strArray[i]).length;
-    }
-    return {uint8Array, byteOffsets};
-  }
-
 
   
   /*
