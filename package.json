@@ -30,6 +30,9 @@
     ]
   },
   "dependencies": {
-    "event-stream": "^4.0.1"
+    "event-stream": "^4.0.1",
+    "jquery": "^3.6.3",
+    "jquery-ui-dist": "^1.13.2",
+    "slickgrid": "^3.0.2"
   }
 }

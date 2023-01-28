@@ -1,13 +1,13 @@
 //const items = [...10000000]; // your list of items
 const information = document.getElementById('info')
-const items = Array.from({length: 1000}, (_, i) => i + 1);
+const items = Array.from({length: 100000}, (_, i) => i + 1);
 
 //const items = [...1000]
 const listContainer = document.getElementById("list-container");
 const list = document.getElementById("list");
 //const list_item = document.getElementById("list-item");
 const ITEM_HEIGHT = 40;
-const VISIBLE_ITEMS = Math.ceil(listContainer.clientHeight / 40); // the number of items that can be visible at a time
+const VISIBLE_ITEMS = Math.ceil(listContainer.clientHeight / ITEM_HEIGHT); // the number of items that can be visible at a time
 information.innerText = `Files System3 ${VISIBLE_ITEMS}`
 let startIndex = 0; // the index of the first visible item
 let endIndex = VISIBLE_ITEMS; // the index of the last visible item
