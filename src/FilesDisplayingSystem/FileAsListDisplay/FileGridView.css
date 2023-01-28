@@ -1,4 +1,4 @@
-@import url('../../../node_modules/slickgridslick-default-theme.css');
+@import url('../../../node_modules/slickgrid/slick-default-theme.css');
 
 * {
   font-family: arial;
@@ -240,3 +240,21 @@ input.editor-checkbox {
   border: 0;
 }
 
+.cell-title {
+    font-weight: bold;
+  }
+  
+  .cell-effort-driven {
+    text-align: center;
+  }
+  
+  .green {
+    background-color: green;
+  }      
+  .red {
+    background-color: red;
+  }      
+  .orange {
+    background-color: orange;
+  } 
+  
