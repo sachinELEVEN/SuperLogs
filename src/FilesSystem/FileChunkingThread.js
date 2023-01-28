@@ -37,8 +37,8 @@ const chunkReadingAndProcessingThreadCount = Math.ceil(numberOfCPUCores * 0.8); 
 //2. Breaking the file in chunks - tjid id diificult because it hard to break it into chunks such that it contains fulll lines
 
 //Receiving data from another thread which has the reference to this thread
-parentPort.on('message', (filePath) => {
-   startProcessing(filePath)
+parentPort.on('message', (message) => {
+   startProcessing(message)
 });
 
 //sending data to the parent thread which I think main thread w
@@ -54,7 +54,7 @@ function terminateThread(){
 }
 
 async function startProcessing(message){
-    if(!message.filePath){
+    if(!message.filePath){////IMPORTANT here also check if its valid or not, on place where we should check if a file exists or path is valid or not
         console.log("In FileChunkingThread /FileChunking Thread - filePath missing!")
         terminateThread()
         return;
@@ -64,7 +64,7 @@ async function startProcessing(message){
      let chunks = await createChunks(message.filePath)
      console.timeEnd('ChunkingProcess TimeTaken:')
      //pass refined chunks to ChunkReadingAndProcessingThread;
-     await readAndProcessChunks(message.filePath) // since this is the last method waiting for it does not affect the thread's performance
+     await readAndProcessChunks(message.filePath,message.fileId) // since this is the last method waiting for it does not affect the thread's performance
      //we should maybe send a message here to the parent and kill this thread after its work is done
      //similary we should define all the different threads in the global space so we can kill them after their work is done
      //AT THE END- Killing the thread after its work is done
@@ -171,7 +171,7 @@ issues, so do not want to deal with those
 
 //Loop through refined chunks(refinedChunks) created and passes the i th chunk to the i th ChunkReadingAndProcessingThread along with the file path
 //Passes each refined chunk to a separate thread to read that chunk and process its data
-async function readAndProcessChunks(filePath){
+async function readAndProcessChunks(filePath,fileId){
     return new Promise(async (resolve) => {
     console.timeEnd('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
      //number of chunks will always be >= no of cores
@@ -203,11 +203,13 @@ async function readAndProcessChunks(filePath){
                //we cannot resolve it we still have to get responses from all chunkReadingAndProcessing thread
                chunkReadingAndProcessingThreadsCompletedCount+=1;
                if(chunkReadingAndProcessingThreadsCompletedCount==refinedChunks.length){
+                //all the chunks have been resolved so we can notify the parent that the file has been processed
+                sendMessageToParent({'fileProcessed':true});//to notify the parent that the chunk has been processed
                 resolve();
                }
                
             }   
-            if (message.isProcessedChunk){
+             if (message.isProcessedChunk){
                 console.log("In: FileChunkingThread: Processed Chunk Receivedt", message.id)
                  //if message is the chunk then save it in one object and pass it to main
                 // linedFileData[message.id] = message.chunk//my doubt is passing large amount of data through .postMessage may create copy of data which increases speed, and makes the program slow
@@ -217,7 +219,7 @@ async function readAndProcessChunks(filePath){
                     let linesFilePassingMessage = {
                         'isLinedFile':'yes',
                         'linedFileData':message.chunk,//linedFileData - not sending this as i doubt the message size will grow very big as we start receiving more chunks,//an array containing chunks, which is an array containing lines
-                        'id':message.id//represents the file part
+                        'fileId':fileId//represents the file part
                       }
                       //This message does not work if we do not make this method asyn and wait for it otherwise the thread terminates and we do not have any allocations for parent or other memebers.
                     sendMessageToParent(linesFilePassingMessage)

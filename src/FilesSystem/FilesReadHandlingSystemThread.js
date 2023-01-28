@@ -24,8 +24,8 @@ const { Worker, workerData, parentPort } = require('worker_threads');
 
 
 //1. initiliasing step
-//const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
-const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
+const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
+//const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
 //const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 const FilesContent = {};
 const numberOfCPUCores = require('os').cpus().length;
@@ -41,12 +41,13 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
  function startExecution(){
     console.log('"In fileReadHandlingSystemThread: Starting thread processing')
     start();
-    close();
+   // close();//we will have to wait till we reieve the data from all the threads and only then can we kill this thread
  }
 
  function start(){
     
     const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
+    let fileChunkingThreadsCompletedCount = 0;
     let filesData = new Array(FilePaths.length);//stores line data for each file//very big so pass by reference and manipulate carefully
     for (i=0;i<FilePaths.length;++i) {
         //Choose a FileReaderThread randomly and pass it the file path
@@ -54,21 +55,38 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
         const fileChunkingThread = fileChunkingThreads[i];
         let message = {
             'filePath':filePath,
+            'fileId':i
         }
         fileChunkingThread.postMessage(message);
        
         fileChunkingThread.on('message', (message) => {
-            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ", message)
+            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ")
             let linedFileData= [];
+
+            if(message.fileProcessed){
+                //meaning the chunk has been processed so we can resolve
+               //we cannot resolve it we still have to get responses from all chunkReadingAndProcessing thread
+              // chunkReadingAndProcessingThreadsCompletedCount+=1;
+              fileChunkingThreadsCompletedCount+=1;
+               if(fileChunkingThreadsCompletedCount==FilePaths.length){
+                //all the chunks have been resolved so we can notify the parent that the file has been processed
+                sendMessageToParent({'filesProcessed':true});//to notify the parent that the chunk has been processed
+                close();
+               }
+               
+            }   
             if (message.nfcNotifier){//no. of chunks notifier 
                 //this creates an array of size of nof chunks in the file.
                 //Initialising the array as soon as we know how many chunks of this file will be there
                 linedFileData= new Array(message.chunkCount);
-            }else if(message.isLinedFile){
-                //you get 
-               
+            }
+             if(message.isLinedFile){
+                
                 linedFileData[message.id] = message.linedFileData
-                console.log(`Lined file generation, recieved Chunk No. go ${message.id}`)
+                filesData[message.fileId] = linedFileData;
+                console.log(`Lined file generation, recieved Chunk No.${message.id}`)
+                console.log(`Added to FilesData. file no. ${message.fileId}`)
+                
             }   
 
         });
