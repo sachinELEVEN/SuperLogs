@@ -27,7 +27,7 @@ var options = {
 };
 
 $(function () {
-    for (var i = 0; i < 50; i++) {
+    for (var i = 0; i < 5000000; i++) {
         var d = (data[i] = {});
 
         d["title"] = "Task " + i;

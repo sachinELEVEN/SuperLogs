@@ -24,6 +24,15 @@ app.whenReady().then(() => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
+
+    ipcMain.on('getAllFilesData', (event) => {
+      //let filesData = frhs.loadFiles()
+     // event.sender.send('setAllFilesData', );
+  });
+
+
+
+
   });
 });
 
@@ -33,7 +42,10 @@ app.on('window-all-closed', () => {
   }
 });
 
-//initialising system
+//initialising systems
+//LPC
 let lpc = new SLLPCManager()
 lpc.initialise();
+//FileReadHandlingSystem
+//let frhs = SLSystemFilesReadHandler();
 

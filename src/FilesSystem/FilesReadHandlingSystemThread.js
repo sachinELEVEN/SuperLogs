@@ -86,7 +86,11 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
                 filesData[message.fileId] = linedFileData;
                 console.log(`Lined file generation, recieved Chunk No.${message.id}`)
                 console.log(`Added to FilesData. file no. ${message.fileId}`)
-                
+                //we should send message to the parent with list of all the files
+                //sending the complete fileData it may increase memory because of copying - but doing this 
+                //will/should use some sort of passing mechanism to resolve from this.
+                //filesData -> array of files -> each of which is an array of chunks -> each chunk is an array of line
+                sendMessageToParent({'linedFilesData': filesData,'linedFilesData':true});
             }   
 
         });
