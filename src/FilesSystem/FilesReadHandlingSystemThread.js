@@ -25,7 +25,7 @@ const { Worker, workerData, parentPort } = require('worker_threads');
 
 //1. initiliasing step
 //const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
-const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt','/Users/sachinjeph/Desktop/superFileHandling/file1.txt']
+const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
 //const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 const FilesContent = {};
 const numberOfCPUCores = require('os').cpus().length;
@@ -68,7 +68,7 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
                 //you get 
                
                 linedFileData[message.id] = message.linedFileData
-                console.log(`Lined file generation, recieved Chunk No. no ${message.id}`)
+                console.log(`Lined file generation, recieved Chunk No. go ${message.id}`)
             }   
 
         });

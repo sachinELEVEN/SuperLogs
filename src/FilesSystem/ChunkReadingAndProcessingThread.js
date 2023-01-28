@@ -51,6 +51,14 @@ parentPort.on('message', (message) => {
  //let lines = new Uint8Array();//idea of using typed array of utf-8
 async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
     return new Promise(async (resolve) => {
+
+
+        if(startIdx>endIdx){
+            sendMessageToParent({'chunkProcessed':true});
+            resolve('done')
+            return
+        }
+
         let encoding = 'utf8'
         const KB = 1024;
         const readChunkSize = 32*KB;//THIS WAS THE BEST IN PRACTICAL RESULTS
@@ -86,7 +94,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                     'id':chunkId
                 }
                  sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
-                 sendMessageToParent({'chunkProcessed':true});
+                 sendMessageToParent({'chunkProcessed':true});//to notify the parent that the chunk has been processed
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 resolve('done')
             })

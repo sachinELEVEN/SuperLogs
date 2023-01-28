@@ -256,9 +256,9 @@ async function readChunkForRefinement(filePath,chunkStartIndex,chunkEndIndex,chu
     return new Promise(async (resolve) => {
 
         console.log("Starting wow ",chunkStartIndex, chunkEndIndex)
-    if(chunkStartIndex>=fileSize){
+    if(chunkStartIndex>=fileSize || chunkStartIndex>chunkEndIndex){
         console.log("CHUNK PART DONE ->",chunkStartIndex, chunkEndIndex)
-        console.log("Refined Chunk - ","IGNOERED START>=FILESIZE")
+        console.log("Refined Chunk - ","IGNOERED START>=FILESIZE, or invalid indexes")
         resolve('done')
         return;
     }
@@ -454,7 +454,7 @@ function removeDuplicateChunk(){
         To avoid this we have the same suggestions:-
         1. Line size should not be  very large in comparison to file size
         3. File should not be very small
-        2. Do not worry about this for large file-Number of chunks should not be very high like 1000. as this increases the chance of having both the ends of the chunk on the same line.
+        2. Do not worry about this for large file issue - Number of chunks should not be very high like 1000. as this increases the chance of having both the ends of the chunk on the same line.
         Eg below:- 
             Final Refined Chunks:  [
             { f: 54, r: 54, id: 7 },
