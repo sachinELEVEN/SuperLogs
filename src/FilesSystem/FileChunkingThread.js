@@ -167,6 +167,8 @@ async function readAndProcessChunks(filePath){
         console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
         return;
     }
+    let finalFileData= new Array(refinedChunks.length);
+    
     //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
     //which means some of those threads are unused and always in memory - we do not want that.
     const chunkReadingAndProcessingThreads = new Array(refinedChunks.length).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
@@ -176,13 +178,24 @@ async function readAndProcessChunks(filePath){
             'filePath':filePath,
             'chunkStart':refinedChunks[i].f,
             'chunkEnd':refinedChunks[i].r,
-            'chunkId':refinedChunks[i].id,
+            'chunkId':refinedChunks[i].id,//index representing the chunk order in the total file, first is 0
 
         }
         chunkReadingAndProcessingThread.postMessage(message);
        
         chunkReadingAndProcessingThread.on('message', (message) => {
-            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ", message)    
+            console.log("In: FileChunkingThread: got message from THREAD: ")    
+            if (message.isProcessedChunk){
+                console.log("Processed Chunk Received")
+                 //if message is the chunk then save it in one object and pass it to main
+                finalFileData[message.id] = message.chunk//my doubt is passing large amount of data through .postMessage may create copy of data which increases speed, and makes the program slow
+                    //we should directly send this to parent
+                    //since number of chunks are not that large -> multiple message sending will not take too much extra time
+                    //parent.post here //next
+            }
+           
+           
+
         });
         chunkReadingAndProcessingThread.on('exit', (code) => {
             console.log(`In fileReadHandlingSystemThread: SUCCESS: Thread Closed: fileChunkingThread closed with code ${code}`);
@@ -424,6 +437,9 @@ function removeDuplicateChunk(){
             ]
 
 
+            I think one more issue is the biggest one we have is that since a character in a file can be of multi-byte
+            length, when breaking a file into chunks it is possible/certainity that we will break that work and it will
+            becomes corrupt - simple solution do not break the file into chunks
 
     */
 

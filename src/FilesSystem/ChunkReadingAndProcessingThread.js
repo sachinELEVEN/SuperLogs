@@ -6,7 +6,7 @@ const threadName = "ChunkReadingAndProcessingThread";
 es = require('event-stream');
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
 //if the below flag is true and line contains ascii, that line will be ignored
-const allowOnlyASCII = true;
+const allowOnlyASCII = true;//turning this on makes file reads slow
 //Receiving data from another thread which has the reference to this thread
 parentPort.on('message', (message) => {
     startProcessing(message)
@@ -24,6 +24,8 @@ parentPort.on('message', (message) => {
      parentPort.close();//asking the parent to close the thread
  }
  
+ let lines = [];//array Uint8Array/normal array depending on value of allowAsciiOnly
+
  async function startProcessing(message){
      if(!message.filePath){
          console.log(`In ${threadName} /${threadName}  - filePath missing!`)
@@ -36,7 +38,13 @@ parentPort.on('message', (message) => {
       //assuming messsage recieved is va;id and has all the required data
      await startReadingAndProcessing(message.filePath,message.chunkStart,message.chunkEnd,message.chunkId);
       //pass refined chunks to ChunkReadingAndProcessingThread;
-      
+      //send chunk to parent
+      let chunkPassingMessage = {
+        'isProcessedChunk':'yes',
+        'chunk':lines,
+        'id':message.chunkId
+      }
+      sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
       //we should maybe send a message here to the parent and kill this thread after its work is done
       //similary we should define all the different threads in the global space so we can kill them after their work is done
       //AT THE END- Killing the thread after its work is done
@@ -44,7 +52,7 @@ parentPort.on('message', (message) => {
  
  }
 
- let lines = [];//array Uint8Array/normal array depending on value of allowAsciiOnly
+
  let numr=0;
  //let tsize = 0;
  //let lines = new Uint8Array();//idea of using typed array of utf-8
@@ -60,8 +68,10 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
             .pipe(es.mapSync(function(line){
               //  console.log(line);
              // lines.push(line);
-             addLine(line);
-                //s.pause();
+             //should make this inline
+             //This extra method call overhead is big
+            addLine(line);//this add around 1s so for a 1GB file time goes from 2.5s to 3.5s wow thats too much
+            //s.pause();
             //s.resume();
             })
             .on('error',function(err){
