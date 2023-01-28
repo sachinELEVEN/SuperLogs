@@ -72,9 +72,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.log("Read entire chunk : Numr: ",lines.length)
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
-              
-                
-              // console.log(tsize/(KB*KB)); //out put in mb
+                //Add processing here we will do it after we read the complete file.
            
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 resolve('done')

@@ -1,0 +1,16 @@
+.list-container{
+    background-color: rgb(159, 159, 240);
+   height: 50%;
+   overflow: scroll;
+}
+
+.list-item{
+    height:40px;
+    background-color: rgb(135, 236, 191);
+   
+}
+
+html, body {
+    height: 100%;
+    background-color: rgb(159, 159, 240);
+}
