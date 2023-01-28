@@ -45,9 +45,9 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
  }
 
  function start(){
-
-    const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
     
+    const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
+    let filesData = new Array(FilePaths.length);//stores line data for each file//very big so pass by reference and manipulate carefully
     for (i=0;i<FilePaths.length;++i) {
         //Choose a FileReaderThread randomly and pass it the file path
         let filePath = FilePaths[i];
@@ -58,7 +58,19 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
         fileChunkingThread.postMessage(message);
        
         fileChunkingThread.on('message', (message) => {
-            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ", message)    
+            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ", message)
+            let linedFileData= [];
+            if (message.nfcNotifier){//no. of chunks notifier 
+                //this creates an array of size of nof chunks in the file.
+                //Initialising the array as soon as we know how many chunks of this file will be there
+                linedFileData= new Array(message.chunkCount);
+            }else if(message.isLinedFile){
+                //you get 
+                console.log("GOT CHUNK")
+                linedFileData[message.id] = message.linedFileData
+                console.log("GOT CHUNK")
+            }   
+
         });
         fileChunkingThread.on('exit', (code) => {
             console.log(`In fileReadHandlingSystemThread: SUCCESS: Thread Closed: fileChunkingThread closed with code ${code}`);

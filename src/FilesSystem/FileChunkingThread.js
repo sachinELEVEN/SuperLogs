@@ -43,7 +43,7 @@ parentPort.on('message', (filePath) => {
 
 //sending data to the parent thread which I think main thread w
 function sendMessageToParent(message){
-    parentPort.postMessage(message );
+    parentPort.postMessage(message);
     
 }
 
@@ -64,7 +64,7 @@ async function startProcessing(message){
      let chunks = await createChunks(message.filePath)
      console.timeEnd('ChunkingProcess TimeTaken:')
      //pass refined chunks to ChunkReadingAndProcessingThread;
-     readAndProcessChunks(message.filePath)
+     await readAndProcessChunks(message.filePath) // since this is the last method waiting for it does not affect the thread's performance
      //we should maybe send a message here to the parent and kill this thread after its work is done
      //similary we should define all the different threads in the global space so we can kill them after their work is done
      //AT THE END- Killing the thread after its work is done
@@ -102,6 +102,7 @@ async function createChunks(filePath){
     //In total we want k chunks, first break into k-1 chunks, each such chunk will have an integeger values because of Math.floor, kth lastChunkSize = totalSize - k*standardChunkSize
     //loop from i*standardChunkSize to (i+1)*standardChunkSize-1, i varies from 0 to k-2, k-1 th element will be handled separately
     let k = chunkReadingAndProcessingThreadCount;
+    sendMessageToParent({'nfcNotifier':'yes','chunkCount':k});
     let standardChunkSize = Math.floor(sizeInBytes/(k-1));
     let lastChunkSize = sizeInBytes - standardChunkSize*(k-1);
    
@@ -158,16 +159,27 @@ console.log("Final Unrefined Chunks: ");
 
 // }
 
+/*
+SHARED MEMORY USAGE 
+//we should create a sharedmemory array here - this is complex for now 
+because I will have to use int32array something, which again can cause data corruption and memory size
+issues, so do not want to deal with those
+*/
+
+
+
+
 //Loop through refined chunks(refinedChunks) created and passes the i th chunk to the i th ChunkReadingAndProcessingThread along with the file path
 //Passes each refined chunk to a separate thread to read that chunk and process its data
 async function readAndProcessChunks(filePath){
+    return new Promise(async (resolve) => {
     console.timeEnd('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
      //number of chunks will always be >= no of cores
     if (chunkReadingAndProcessingThreadCount<refinedChunks.length){
         console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
         return;
     }
-    let finalFileData= new Array(refinedChunks.length);
+   // let linedFileData= new Array(refinedChunks.length);
     
     //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
     //which means some of those threads are unused and always in memory - we do not want that.
@@ -184,14 +196,27 @@ async function readAndProcessChunks(filePath){
         chunkReadingAndProcessingThread.postMessage(message);
        
         chunkReadingAndProcessingThread.on('message', (message) => {
-            console.log("In: FileChunkingThread: got message from THREAD: ")    
+            console.log("In: FileChunkingThread: got message from THREAD: ") 
+            if(message.chunkProcessed){
+                //meaning the chunk has been processed so we can resolve
+               resolve();
+            }   
             if (message.isProcessedChunk){
-                console.log("Processed Chunk Received")
+                console.log("In: FileChunkingThread: Processed Chunk Received")
                  //if message is the chunk then save it in one object and pass it to main
-                finalFileData[message.id] = message.chunk//my doubt is passing large amount of data through .postMessage may create copy of data which increases speed, and makes the program slow
+                // linedFileData[message.id] = message.chunk//my doubt is passing large amount of data through .postMessage may create copy of data which increases speed, and makes the program slow
                     //we should directly send this to parent
                     //since number of chunks are not that large -> multiple message sending will not take too much extra time
-                    //parent.post here //next
+                    //parent.post here //we are sending it as soon as we have it so as to make it as non blocking as possible
+                    let linesFilePassingMessage = {
+                        'isLinedFile':'yes',
+                        'linedFileData':message.chunk,//linedFileData - not sending this as i doubt the message size will grow very big as we start receiving more chunks,//an array containing chunks, which is an array containing lines
+                        'id':message.chunkId//represents the file part
+                      }
+                      
+                      //This message does not work if we do not make this method asyn and wait for it otherwise the thread terminates and we do not have any allocations for parent or other memebers.
+                    sendMessageToParent(linesFilePassingMessage)
+
             }
            
            
@@ -201,6 +226,7 @@ async function readAndProcessChunks(filePath){
             console.log(`In fileReadHandlingSystemThread: SUCCESS: Thread Closed: fileChunkingThread closed with code ${code}`);
         });
    }
+    });
 }
 
 

@@ -38,13 +38,6 @@ parentPort.on('message', (message) => {
       //assuming messsage recieved is va;id and has all the required data
      await startReadingAndProcessing(message.filePath,message.chunkStart,message.chunkEnd,message.chunkId);
       //pass refined chunks to ChunkReadingAndProcessingThread;
-      //send chunk to parent
-      let chunkPassingMessage = {
-        'isProcessedChunk':'yes',
-        'chunk':lines,
-        'id':message.chunkId
-      }
-      sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
       //we should maybe send a message here to the parent and kill this thread after its work is done
       //similary we should define all the different threads in the global space so we can kill them after their work is done
       //AT THE END- Killing the thread after its work is done
@@ -73,6 +66,9 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
             addLine(line);//this add around 1s so for a 1GB file time goes from 2.5s to 3.5s wow thats too much
             //s.pause();
             //s.resume();
+            //WE NEED TO ADD A CONFIG SO THAT WE CAN SEND A SINGLE LINE BACK TO MAIN THREAD, SO WE START DISPLAYING
+            //CONTENT AS SOON AS WE GET IT - WILL LEAD TO OVERALL PROCESS(THIS THREAD'S WORK SLOW BECAUSE OF OVERHEADS) BUT 
+            //USER EXPERIENCE WILL BE FAR SMOOTHER, WILL HAVE TO MOVE sendMessageToParent FROM ON END TO HERE
             })
             .on('error',function(err){
                 console.log(err)
@@ -83,7 +79,14 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.timeEnd('ChunkReadingAndProcessing Reading TimeTaken:')
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
                 //Add processing here we will do it after we read the complete file.
-           
+                      //send chunk to parent
+                let chunkPassingMessage = {
+                    'isProcessedChunk':'yes',
+                    'chunk':lines,
+                    'id':chunkId
+                }
+                 sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
+                 sendMessageToParent({'chunkProcessed':true});
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 resolve('done')
             })
