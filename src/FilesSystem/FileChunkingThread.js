@@ -184,6 +184,7 @@ async function readAndProcessChunks(filePath){
     //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
     //which means some of those threads are unused and always in memory - we do not want that.
     const chunkReadingAndProcessingThreads = new Array(refinedChunks.length).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
+    let chunkReadingAndProcessingThreadsCompletedCount = 0;//no. of threads done with their work
     for(i=0;i<refinedChunks.length;++i){
         chunkReadingAndProcessingThread = chunkReadingAndProcessingThreads[i];
         let message = {
@@ -199,10 +200,15 @@ async function readAndProcessChunks(filePath){
             console.log("In: FileChunkingThread: got message from THREAD: ") 
             if(message.chunkProcessed){
                 //meaning the chunk has been processed so we can resolve
-               resolve();
+               //we cannot resolve it we still have to get responses from all chunkReadingAndProcessing thread
+               chunkReadingAndProcessingThreadsCompletedCount+=1;
+               if(chunkReadingAndProcessingThreadsCompletedCount==refinedChunks.length){
+                resolve();
+               }
+               
             }   
             if (message.isProcessedChunk){
-                console.log("In: FileChunkingThread: Processed Chunk Received")
+                console.log("In: FileChunkingThread: Processed Chunk Receivedt", message.id)
                  //if message is the chunk then save it in one object and pass it to main
                 // linedFileData[message.id] = message.chunk//my doubt is passing large amount of data through .postMessage may create copy of data which increases speed, and makes the program slow
                     //we should directly send this to parent
@@ -211,12 +217,11 @@ async function readAndProcessChunks(filePath){
                     let linesFilePassingMessage = {
                         'isLinedFile':'yes',
                         'linedFileData':message.chunk,//linedFileData - not sending this as i doubt the message size will grow very big as we start receiving more chunks,//an array containing chunks, which is an array containing lines
-                        'id':message.chunkId//represents the file part
+                        'id':message.id//represents the file part
                       }
-                      
                       //This message does not work if we do not make this method asyn and wait for it otherwise the thread terminates and we do not have any allocations for parent or other memebers.
                     sendMessageToParent(linesFilePassingMessage)
-
+//we might be killing the thread before
             }
            
            
