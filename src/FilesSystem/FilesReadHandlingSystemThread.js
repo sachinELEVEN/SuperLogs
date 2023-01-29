@@ -25,8 +25,8 @@ const path = require('path')
 
 
 //1. initiliasing step
-const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
-//const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
+//const FilePaths = ['/Users/sachinjeph/Desktop/superFileHandling/file1.txt'];
+const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random.txt']
 //const FilePaths = ['/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt','/Users/sachinjeph/Desktop/superlogs/superlogs-app/temp/random10g.txt']
 const FilesContent = {};
 const numberOfCPUCores = require('os').cpus().length;

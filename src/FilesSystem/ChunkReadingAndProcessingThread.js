@@ -7,8 +7,9 @@ es = require('event-stream');
 const path = require('path')
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
 //if the below flag is true and line contains ascii, that line will be ignored
-const allowOnlyASCII = false;//turning this on makes file reads slow
+const allowOnlyASCII = true;//turning this on makes file reads slow
 //Receiving data from another thread which has the reference to this thread
+const onlySendCompleteChunk = true;//not optimised for true as of now for some reason//if false we will continously send the lines as we generate them else we wait for the complete chunk to load
 parentPort.on('message', (message) => {
     startProcessing(message)
  });
@@ -72,7 +73,17 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
              // lines.push(line);
              //should make this inline
              //This extra method call overhead is big
-            addLine(line);//this add around 1s so for a 1GB file time goes from 2.5s to 3.5s wow thats too much
+            addLine(line);//this add around 1s so for a 1GB file time goes from 2.5s to 3.5s wow thats too much,
+                //in electron it is taking 1minute to load  lmao
+                if(!onlySendCompleteChunk){//continous streaming
+                    let chunkPassingMessage = {
+                        'isProcessedChunk':'yes',
+                        'chunk':lines,
+                        'id':chunkId
+                    }
+                   // console.log("THESE LINES",lines)
+                     sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
+                }
             //s.pause();
             //s.resume();
             //WE NEED TO ADD A CONFIG SO THAT WE CAN SEND A SINGLE LINE BACK TO MAIN THREAD, SO WE START DISPLAYING
@@ -89,6 +100,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 console.time('ChunkReadingAndProcessing Processing TimeTaken:')
                 //Add processing here we will do it after we read the complete file.
                       //send chunk to parent
+                      if (onlySendCompleteChunk){
                 let chunkPassingMessage = {
                     'isProcessedChunk':'yes',
                     'chunk':lines,
@@ -96,6 +108,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                 }
                // console.log("THESE LINES",lines)
                  sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
+            }
                  sendMessageToParent({'chunkProcessed':true});//to notify the parent that the chunk has been processed
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
                 resolve('done')

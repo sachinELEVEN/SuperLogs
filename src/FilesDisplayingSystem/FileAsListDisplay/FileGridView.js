@@ -33,6 +33,7 @@ var options = {
 
 function render() {
 let l = 0;
+//we will need to decode the uint8 array back to string here
   console.log("hello")
   for(i = 0;i<data.length;++i){
     if(!data[i]){continue;}
@@ -48,7 +49,7 @@ let l = 0;
           var d = (gridrowsData[l] = {});
           console.log("hello3",d)
           d["title"] = data[i][j][k];
-        d["duration"] = "5 days";
+        d["duration"] = l;
         d["percentComplete"] = Math.min(100, Math.round(Math.random() * 110));
         d["start"] = "01/01/2009";
         d["finish"] = "01/05/2009";
