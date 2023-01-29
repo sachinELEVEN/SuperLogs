@@ -63,3 +63,15 @@ $(function () {
       
       grid.init();
 });
+
+window.versions.onUpdateCounter((_event, value) => {
+   console.log("this is file grid view")
+})
+//slickgrid.invalidate(); - rerender the grid
+/*
+to update only a specific part, so this will be usefull if the grid is getting reloaded a large number of times
+slickgrid.invalidateRows([4, 7]);
+slickgrid.updateRowCount();
+slickgrid.render();
+
+*/

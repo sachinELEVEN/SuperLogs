@@ -40,7 +40,7 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
 
 
  function startExecution(){
-    console.log('"In fileReadHandlingSystemThread: Starting thread processing')
+    console.log('"In fileReadHandlingSystemThread: Starting thread processing with threads',fileChunkingThreadsCount)
     start();
    // close();//we will have to wait till we reieve the data from all the threads and only then can we kill this thread
  }
@@ -59,11 +59,10 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
             'fileId':i
         }
         fileChunkingThread.postMessage(message);
-       
+        let linedFileData= [];
         fileChunkingThread.on('message', (message) => {
-            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ")
-            let linedFileData= [];
-
+            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ",message)
+           
             if(message.fileProcessed){
                 //meaning the chunk has been processed so we can resolve
                //we cannot resolve it we still have to get responses from all chunkReadingAndProcessing thread
@@ -83,7 +82,7 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
             }
              if(message.isLinedFile){
                 
-                linedFileData[message.id] = message.linedFileData
+                linedFileData[message.fileId] = message.linedFileData
                 filesData[message.fileId] = linedFileData;
                 console.log(`Lined file generation, recieved Chunk No.${message.id}`)
                 console.log(`Added to FilesData. file no. ${message.fileId}`)
@@ -91,7 +90,8 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
                 //sending the complete fileData it may increase memory because of copying - but doing this 
                 //will/should use some sort of passing mechanism to resolve from this.
                 //filesData -> array of files -> each of which is an array of chunks -> each chunk is an array of line
-                sendMessageToParent({'linedFilesData': filesData,'linedFilesData':true});
+              //THIS HAS THE CORRECT DATA 
+                sendMessageToParent({'linedFilesData': filesData,'isLinedFilesData':true,'lol':'op'});
             }   
 
         });

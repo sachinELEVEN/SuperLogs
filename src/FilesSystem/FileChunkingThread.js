@@ -174,7 +174,7 @@ issues, so do not want to deal with those
 //Passes each refined chunk to a separate thread to read that chunk and process its data
 async function readAndProcessChunks(filePath,fileId){
     return new Promise(async (resolve) => {
-    console.timeEnd('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
+    console.log('In: fileReadHandlingSystemThread: Starting chunk reading and processing.')
      //number of chunks will always be >= no of cores
     if (chunkReadingAndProcessingThreadCount<refinedChunks.length){
         console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
@@ -474,6 +474,10 @@ function removeDuplicateChunk(){
             I think one more issue is the biggest one we have is that since a character in a file can be of multi-byte
             length, when breaking a file into chunks it is possible/certainity that we will break that work and it will
             becomes corrupt - simple solution do not break the file into chunks
+
+
+            There is this issue electron that somehow loads up a list before anything and fails -> gives empty lined data even though
+            //subsequent runs well.
 
     */
 
