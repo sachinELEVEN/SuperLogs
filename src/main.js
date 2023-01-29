@@ -28,11 +28,6 @@ const createWindow = () => {
   
 };
 
-// ipcMain.handle('ping', ()=>{
-//   //mainWindow.webContents.send('update-runtime-fpg', filesData);
-// })
-
-
 
 app.whenReady().then(() => {
   createWindow();
@@ -42,20 +37,7 @@ app.whenReady().then(() => {
       createWindow();
     }
 
-  //   mainWindow.webContents.send('update-runtime-fpg', "filesData")
-    
-  //   setTimeout(() => {
-  //     mainWindow.webContents.send('update-runtime-fpg', "filesData2")
-  // }, 100);
-
-  //   ipcMain.on('getAllFilesData', (event) => {
-  //     //let filesData = frhs.loadFiles()
-  //    // event.sender.send('setAllFilesData', );
-  // });
-
-
-
-
+ 
   });
 });
 
@@ -73,49 +55,8 @@ let lpc = new SLLPCManager()
 //lpc.initialise();
 //FileReadHandlingSystem
 let frhs = new SLSystemFilesReadHandler();
-//console.log("wow")
-// frhs.loadFiles(lpc,true,function(filesData){
-//   //this callback is called with the list and updated list
-//   //console.log("oyo")
-//   console.log("Runtime FPG data source updated")
-//  // mainWindow.webContents.send('something',filesData);
-//  // mainWindow.webContents.send('update-runtime-fpg', filesData)
-// });//i THINK we will need to do it by using callback
 
-// //ipcMain.send('data-channel', {"hi":"nice"});
-// app.webContents.send('data-channel', {"hi":"nice"})
 module.exports = mainWindow;
-
-// ipcMain.on('request-data', (event) => {
-//   // assume dataToSend is the data you want to send
-//   event.sender.send('data', dataToSend);
-// });
-
-
-// ipcMain.handle('getGridData', ()=>{
-//   console.log("getting grid data")
-//   frhs.loadFiles(lpc,true,function(filesData){
-
-//     //this callback is called with the list and updated list
-//     //console.log("oyo")
-//     console.log("Runtime FPG data source updated")
-//     mainWindow.webContents.send('update-runtime-fpg', filesData)
-//   });;
-// });
-
- let icounter = 0;
-// setTimeout(() => {
-//   icounter++;
-//   mainWindow.webContents.send('something',icounter);
-// }, 1500);
-
-//main to renderer
-/* 'something' message types is workimng
-setInterval(() => {
-  icounter++;
-  mainWindow.webContents.send('something',icounter);
-}, 500);
-*/
 
 
 //renderer to main a message that i want to start streaming file fpg data
@@ -127,11 +68,6 @@ ipcMain.handle('getRuntimeFPGData', async (event, arg) => {
 //this send message from main to renderer with file data
 function startStreamingFPGDataToRenderer(){
   frhs.loadFiles(lpc,true,function(filesData){
-    //this callback is called with the list and updated list
-    //console.log("oyo")
-    console.log("Runtime FPG data source updated")
-   // mainWindow.webContents.send('something',filesData);
-   // mainWindow.webContents.send('update-runtime-fpg', filesData)
    mainWindow.webContents.send('streamingRuntimeFPGData',filesData);
   });//i
 }

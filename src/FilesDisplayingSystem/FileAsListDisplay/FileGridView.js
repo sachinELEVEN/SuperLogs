@@ -12,7 +12,8 @@ more information about that logline, that reoccurence count, no. of times error 
 
 //const {getRuntimeFPGLinedFiles} = require('electron').remote.require('/Users/sachinjeph/Desktop/superlogs/superlogs-app/src/FilesSystem/SystemFilesReadHandler.js');
 var grid;
-var data = [];
+var data = [];//ARRAY OF FILES, array of chunks //array of lines
+var gridrowsData = [];
 var columns = [
     {id: "title", name: "Title", field: "title", width: 120, cssClass: "cell-title"},
     {id: "duration", name: "Duration", field: "duration"},
@@ -30,19 +31,38 @@ var options = {
     explicitInitialization: true
 };
 
-$(function () {
-    for (var i = 0; i < 5000000; i++) {
-        var d = (data[i] = {});
-
-        d["title"] = "Task " + i;
+function render() {
+let l = 0;
+  console.log("hello")
+  for(i = 0;i<data.length;++i){
+    if(!data[i]){continue;}
+    console.log("hello1")
+      //single file containing chunks
+      for(j=0;j<data[i].length;++j){
+        //a single chunk containing lines
+        if(!data[i][j]){continue;}
+        console.log("hello2")
+        for(k=0;k<data[i][j].length;++k){
+          //we get a line, which contains words but we are displaying line
+          if(!data[i][j][k]){continue;}
+          var d = (gridrowsData[l] = {});
+          console.log("hello3",d)
+          d["title"] = data[i][j][k];
         d["duration"] = "5 days";
         d["percentComplete"] = Math.min(100, Math.round(Math.random() * 110));
         d["start"] = "01/01/2009";
         d["finish"] = "01/05/2009";
         d["effortDriven"] = (i % 5 == 0);
-    }
+        ++l;
+        }
+      }
+    
+  }
 
-    grid = new Slick.Grid("#myGrid", data, columns, options);
+
+
+  
+    grid = new Slick.Grid("#myGrid", gridrowsData, columns, options);
       // The onBeforeAppendCell event returns text corresponding to the css class to add to the cell. 
     // It is called when first rendering the cell or when redrawing invalidated rows, so it can't respond to cell updates like a formatter.
     // It was intended to be a general formatting tool rather then being tied to a particular column, for example to allow validation formatting 
@@ -65,74 +85,22 @@ $(function () {
       }); 
       
       grid.init();
-});
-
-// window.versions.onUpdateCounter((_event, value) => {
-//    console.log("this is file grid view")
-// })
-//slickgrid.invalidate(); - rerender the grid
-/*
-to update only a specific part, so this will be usefull if the grid is getting reloaded a large number of times
-slickgrid.invalidateRows([4, 7]);
-slickgrid.updateRowCount();
-slickgrid.render();
-
-*/
-
-// window.indexBridge.something((event,icounter)=>{
-//   console.log("This is new ",icounter)
-// })
-
-window.indexBridge.streamingRuntimeFPGData((event,runtimeFPG)=>{
-  console.log("Streaming runtimeFPG",runtimeFPG)
-})
-//streamingRuntimeFPGData
-
-// window.indexBridge.getRuntimeFPGData((event,data)=>{
-//   console.log("This is data")
-// })
+};
 
 
-
-//  function getRuntimeFPGData(){
-
-// window.indexBridge.getRuntimeFPGData((result)=>{
-//  //data = result
-//  console.log("data is ")
-  
-// });
-
-// }
-
-
-//  getRuntimeFPGData();
-
-// const func = async () =>{
-//     const response = await window.versions.getRuntimeFPGData();
-//     console.log("response");
-// }
-// window.indexBridge.getRuntimeFPGData((result) => {
-//   // Handle the result
-//   handleResult(result);
-// });
-
-// function getRuntimeFPGData(){
-//   console.log("now")
-//    window.indexBridge.getRuntimeFPGData();
-
- 
-
-  
-
-// }
-// function handleResult(result) {
-//   // Do something with the result
-// }
-
-
+//ASKING FOR STREAM FROM MAIN
 const getRuntimeFPGData = async () =>{
     let data = await window.indexBridge.getRuntimeFPGData()
       console.log("data is ",data);
   }
 
 getRuntimeFPGData()
+
+//GETTING THE STREAM FROM MAIN
+window.indexBridge.streamingRuntimeFPGData((event,runtimeFPG)=>{
+  console.log("Streaming runtimeFPG",runtimeFPG)
+ data = runtimeFPG;
+ // grid.invalidate()
+ render();
+ 
+})
