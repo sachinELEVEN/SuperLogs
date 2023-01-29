@@ -60,18 +60,21 @@ module.exports = SLSystemFilesReadHandler;
 
 //to test this independenctly
 let obj = new SLSystemFilesReadHandler()
-let identifier = 'TAG:'
+//let identifier = 'TAG:'
 //we do not have lpc
 let count = 0;
-obj.loadFiles(null,true,function(){
-    console.log("got data 1")
-    count+=1;
+obj.loadFiles(null,true,function(filesData){
+    //console.log("got data 2",filesData)//data is here
+   // count+=1;
     //the number of  counts and process.std.write are not same, dont know why they are not getting called equal no. of times
    // process.stdout.write(`${identifier}Some data ${count}`);//i thunk this output everything
     //i think this writes the complete stdout
    // process.stdout.flush();//setting the flush of stdout causes child to exit with code 1
    // child process
-    process.send({ message: `${identifier}Some data to send back ${count}` });
+    let message = {
+        'filesData':filesData
+    }
+    process.send({message});
     //THIS IS GETTING CLOSED, may process is getting killed idk(NO), someother reason
 //if should be available but it is not
     //we should use process.send()
