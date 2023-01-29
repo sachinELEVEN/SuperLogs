@@ -6,7 +6,8 @@ more information about that logline, that reoccurence count, no. of times error 
     on which clicking automatically searches that issue on google/chat gpt
 */
 //const Slick = require('slick-grid');
-
+//we need to make this path relative
+//const {getRuntimeFPGLinedFiles} = require('electron').remote.require('/Users/sachinjeph/Desktop/superlogs/superlogs-app/src/FilesSystem/SystemFilesReadHandler.js');
 var grid;
 var data = [];
 var columns = [

@@ -4,6 +4,7 @@ const fs = require('fs');
 const { addListener } = require('process');
 const threadName = "ChunkReadingAndProcessingThread";
 es = require('event-stream');
+const path = require('path')
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
 //if the below flag is true and line contains ascii, that line will be ignored
 const allowOnlyASCII = true;//turning this on makes file reads slow

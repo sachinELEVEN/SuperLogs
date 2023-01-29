@@ -1,5 +1,6 @@
 //How to start the FileReadSystem
 const { Worker } = require('worker_threads')
+const path = require('path')
 
 //responsible for reading the files provided by LPC 
 class SLSystemFilesReadHandler{
@@ -19,13 +20,15 @@ class SLSystemFilesReadHandler{
     }
 
     async #startFilesReadSystem(){
-        
-        const fileReadHandlingSystemThread =  new Worker('./FilesReadHandlingSystemThread');
+      
+        const fileReadHandlingSystemThread =  new Worker(path.join(__dirname,"FilesReadHandlingSystemThread.js"));
         fileReadHandlingSystemThread.postMessage('start');
         fileReadHandlingSystemThread.on('message', (message) => {
             console.log("In Main: got message from THREAD: ", message) 
             if (message.linedFilesData){
                 console.log("Yeah we got lined files data on MAIN")
+                this.linedFilesData = message.linedFilesData
+                //data source updated
                 this.linedFilesData = message.linedFilesData
             }   
         });
@@ -41,3 +44,4 @@ class SLSystemFilesReadHandler{
 }
 
 module.exports = SLSystemFilesReadHandler;
+module.exports.getRuntimeFPGLinedFiles = () => this.linedFilesData;

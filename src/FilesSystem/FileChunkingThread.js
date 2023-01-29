@@ -18,6 +18,7 @@ const fs = require('fs');
 const {EOL} = require('os');
 const { resolve } = require('path');
 const { rejects } = require('assert');
+const path = require('path')
 const allowChunking = true;//if false a single file will be read as a whole; good for small size files and files with very very very long line
 const megaByte = 1000000//1 MB
 const minFileSizeForChunking = 0;//300*megaByte;//in bytes MAKE THIS A PROPER VALUE
@@ -183,7 +184,7 @@ async function readAndProcessChunks(filePath,fileId){
     
     //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
     //which means some of those threads are unused and always in memory - we do not want that.
-    const chunkReadingAndProcessingThreads = new Array(refinedChunks.length).fill(null).map(() => new Worker('./ChunkReadingAndProcessingThread.js'));
+    const chunkReadingAndProcessingThreads = new Array(refinedChunks.length).fill(null).map(() => new Worker(path.join(__dirname,"ChunkReadingAndProcessingThread.js")));
     let chunkReadingAndProcessingThreadsCompletedCount = 0;//no. of threads done with their work
     for(i=0;i<refinedChunks.length;++i){
         chunkReadingAndProcessingThread = chunkReadingAndProcessingThreads[i];

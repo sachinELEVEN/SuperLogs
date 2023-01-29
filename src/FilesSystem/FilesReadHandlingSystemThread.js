@@ -17,6 +17,7 @@ killing the file reading threads after their work is done should be done.
 */
 const { executionAsyncResource } = require('async_hooks');
 const { Worker, workerData, parentPort } = require('worker_threads');
+const path = require('path')
 
 //const subFileReaderThreads = new Array(m).fill(null).map(() => new Worker(__filename));
 //const fileProcessingThreads = new Array(n).fill(null).map(() => new Worker(__filename));
@@ -45,8 +46,8 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
  }
 
  function start(){
-    
-    const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker('./FileChunkingThread.js'));
+
+    const fileChunkingThreads = new Array(fileChunkingThreadsCount).fill(null).map(() => new Worker(path.join(__dirname,"FileChunkingThread.js")));
     let fileChunkingThreadsCompletedCount = 0;
     let filesData = new Array(FilePaths.length);//stores line data for each file//very big so pass by reference and manipulate carefully
     for (i=0;i<FilePaths.length;++i) {

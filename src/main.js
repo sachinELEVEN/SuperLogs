@@ -2,6 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const filePath = './src/index.html'
 const path = require('path')
 const SLLPCManager = require('./LPC/LPCManager.js')
+const SLSystemFilesReadHandler = require('./FilesSystem/SystemFilesReadHandler.js')
 
 const createWindow = () => {
   const win = new BrowserWindow({
@@ -47,5 +48,9 @@ app.on('window-all-closed', () => {
 let lpc = new SLLPCManager()
 lpc.initialise();
 //FileReadHandlingSystem
-//let frhs = SLSystemFilesReadHandler();
+let frhs = new SLSystemFilesReadHandler();
+frhs.loadFiles(lpc,true)
+
+// //ipcMain.send('data-channel', {"hi":"nice"});
+// app.webContents.send('data-channel', {"hi":"nice"})
 
