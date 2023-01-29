@@ -71,10 +71,15 @@ obj.loadFiles(null,true,function(){
     //i think this writes the complete stdout
    // process.stdout.flush();//setting the flush of stdout causes child to exit with code 1
    // child process
-   // process.send({ message: `${identifier}Some data to send back ${count}` });
-
+    process.send({ message: `${identifier}Some data to send back ${count}` });
+    //THIS IS GETTING CLOSED, may process is getting killed idk(NO), someother reason
+//if should be available but it is not
     //we should use process.send()
 })
+
+process.on('disconnect', (data) => {
+    console.log(`IPC closed ${data}`);//THIS IS EXITING BEFORE, IPC IS GETTING CLOSED
+  });
  
 /*
 ./SystemFilesReadHandler.js
