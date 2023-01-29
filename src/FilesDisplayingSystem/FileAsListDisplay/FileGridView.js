@@ -12,10 +12,11 @@ more information about that logline, that reoccurence count, no. of times error 
 
 //const {getRuntimeFPGLinedFiles} = require('electron').remote.require('/Users/sachinjeph/Desktop/superlogs/superlogs-app/src/FilesSystem/SystemFilesReadHandler.js');
 var grid;
+let allowOnlyASCII = true;//ability to read those files when read in this manner
 var data = [];//ARRAY OF FILES, array of chunks //array of lines
 var gridrowsData = [];
 var columns = [
-    {id: "title", name: "Title", field: "title", width: 120, cssClass: "cell-title"},
+    {id: "log line", name: "log line", field: "log line", width: 120, cssClass: "cell-log line"},
     {id: "duration", name: "Duration", field: "duration"},
     {id: "%", name: "% Complete", field: "percentComplete", width: 80, resizable: false, formatter: Slick.Formatters.PercentCompleteBar},
     {id: "status", name: "Status", field: "percentComplete", width: 50, resizable: false},
@@ -47,8 +48,8 @@ let l = 0;
           //we get a line, which contains words but we are displaying line
           if(!data[i][j][k]){continue;}
           var d = (gridrowsData[l] = {});
-          console.log("hello3",d)
-          d["title"] = data[i][j][k];
+          console.log("hello3",d);
+          d["log line"] = getLine(data[i][j][k]);
         d["duration"] = l;
         d["percentComplete"] = Math.min(100, Math.round(Math.random() * 110));
         d["start"] = "01/01/2009";
@@ -105,3 +106,21 @@ window.indexBridge.streamingRuntimeFPGData((event,runtimeFPG)=>{
  render();
  
 })
+
+function getLine(input){
+  if (!allowOnlyASCII){
+      //use the js arrays to store data, since everything will be stored as is
+     return input//stored as string
+  }
+ 
+  //stored as unint8Array but somehow got changed to a normal array in IPC -> so converting back to uint8Array and then string
+  //these conversions the reason why its slow
+ return sl_convertToUTF16(new Uint8Array( Object.values(input)));
+}
+
+function sl_convertToUTF16(uint8Array){
+  const utf8Decoder = new TextDecoder();//define global
+  const decodedString = utf8Decoder.decode(uint8Array);
+  //console.log(decodedString);
+  return decodedString;
+}
