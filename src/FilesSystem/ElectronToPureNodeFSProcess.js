@@ -32,7 +32,7 @@ class ElectronToPureNodeFSProcess {
         });
 
         this.child.on('message', (data) => {
-            console.log(`Received data from child process: ${data}`);// i am almost sure that this data cant be used as is
+            console.log(`Received data from child process: ${data.message.filesData}`);// i am almost sure that this data cant be used as is
             if(data.message.filesData){
                 callback(data.message.filesData)
             }

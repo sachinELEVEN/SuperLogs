@@ -74,6 +74,7 @@ obj.loadFiles(null,true,function(filesData){
     let message = {
         'filesData':filesData
     }
+   // console.log(message)
     process.send({message});
     //THIS IS GETTING CLOSED, may process is getting killed idk(NO), someother reason
 //if should be available but it is not

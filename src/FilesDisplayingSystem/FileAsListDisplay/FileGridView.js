@@ -92,7 +92,7 @@ let l = 0;
 //ASKING FOR STREAM FROM MAIN
 const getRuntimeFPGData = async () =>{
     let data = await window.indexBridge.getRuntimeFPGData()
-      console.log("data is ",data);
+      console.log("grid data is ",data);
   }
 
 getRuntimeFPGData()

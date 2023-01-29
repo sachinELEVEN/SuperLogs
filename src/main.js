@@ -2,7 +2,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const filePath = './src/index.html'
 const path = require('path')
 const SLLPCManager = require('./LPC/LPCManager.js')
-const SLSystemFilesReadHandler = require('./FilesSystem/SystemFilesReadHandler.js');
+const ElectronToPureNodeFSProcess = require('./FilesSystem/ElectronToPureNodeFSProcess.js');
 const { resolve } = require('path');
 const { callbackify } = require('util');
 //const { spawn } = require('child_process');
@@ -54,7 +54,10 @@ app.on('window-all-closed', () => {
 let lpc = new SLLPCManager()
 //lpc.initialise();
 //FileReadHandlingSystem
-let frhs = new SLSystemFilesReadHandler();
+//let frhs = new SLSystemFilesReadHandler();///this is now on a different process not available
+
+let fsr = new ElectronToPureNodeFSProcess()//filesystemread
+
 
 module.exports = mainWindow;
 
@@ -67,7 +70,10 @@ ipcMain.handle('getRuntimeFPGData', async (event, arg) => {
 
 //this send message from main to renderer with file data
 function startStreamingFPGDataToRenderer(){
-  frhs.loadFiles(lpc,true,function(filesData){
-   mainWindow.webContents.send('streamingRuntimeFPGData',filesData);
-  });//i
+  // frhs.loadFiles(lpc,true,function(filesData){
+  //  mainWindow.webContents.send('streamingRuntimeFPGData',filesData);
+  // });//i
+  fsr.start(function(data){
+    mainWindow.webContents.send('streamingRuntimeFPGData',data);
+})
 }
