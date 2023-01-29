@@ -59,6 +59,29 @@ class SLSystemFilesReadHandler{
 module.exports = SLSystemFilesReadHandler;
 
 //to test this independenctly
-// let obj = new SLSystemFilesReadHandler()
-// obj.loadFiles()
-//loadFiles(); 
+let obj = new SLSystemFilesReadHandler()
+let identifier = 'TAG:'
+//we do not have lpc
+let count = 0;
+obj.loadFiles(null,true,function(){
+    console.log("got data 1")
+    count+=1;
+    //the number of  counts and process.std.write are not same, dont know why they are not getting called equal no. of times
+   // process.stdout.write(`${identifier}Some data ${count}`);//i thunk this output everything
+    //i think this writes the complete stdout
+   // process.stdout.flush();//setting the flush of stdout causes child to exit with code 1
+   // child process
+   // process.send({ message: `${identifier}Some data to send back ${count}` });
+
+    //we should use process.send()
+})
+ 
+/*
+./SystemFilesReadHandler.js
+Some data to send back 1
+Some data to send back 4
+Some data to send back 5
+Some data to send back 7
+Child process exited with code 0
+ ~/desktop/superl/superlogs-app/s/Fil
+*/
