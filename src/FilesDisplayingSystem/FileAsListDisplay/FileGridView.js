@@ -7,6 +7,9 @@ more information about that logline, that reoccurence count, no. of times error 
 */
 //const Slick = require('slick-grid');
 //we need to make this path relative
+
+//const { get } = require("jquery");
+
 //const {getRuntimeFPGLinedFiles} = require('electron').remote.require('/Users/sachinjeph/Desktop/superlogs/superlogs-app/src/FilesSystem/SystemFilesReadHandler.js');
 var grid;
 var data = [];
@@ -64,9 +67,9 @@ $(function () {
       grid.init();
 });
 
-window.versions.onUpdateCounter((_event, value) => {
-   console.log("this is file grid view")
-})
+// window.versions.onUpdateCounter((_event, value) => {
+//    console.log("this is file grid view")
+// })
 //slickgrid.invalidate(); - rerender the grid
 /*
 to update only a specific part, so this will be usefull if the grid is getting reloaded a large number of times
@@ -75,3 +78,27 @@ slickgrid.updateRowCount();
 slickgrid.render();
 
 */
+
+window.indexBridge.something((event,icounter)=>{
+  console.log("This is new ",icounter)
+})
+
+// window.indexBridge.getRuntimeFPGData((event,data)=>{
+//   console.log("This is data")
+// })
+
+
+
+async function getRuntimeFPGData(){
+
+ let result = await window.indexBridge.getRuntimeFPGData();
+ //data = result
+ console.log("data is ",result)
+}
+
+ getRuntimeFPGData();
+
+// const func = async () =>{
+//     const response = await window.versions.getRuntimeFPGData();
+//     console.log("response");
+// }

@@ -8,6 +8,8 @@ class SLSystemFilesReadHandler{
         //maybe start lpc system from here
         this.linedFilesData = null;
     }
+
+    //returns the complete files data as we generate them in the callback
     async loadFiles(lpcManager,newload,callback){
         //call the lpcManager fetch files method and await them and then load them
         console.log("In Main: Starting FilesReadHandlingSystemThread") 
@@ -15,10 +17,12 @@ class SLSystemFilesReadHandler{
             this.startFilesReadSystem(() => {
             
                     callback(this.linedFilesData);
+                   // resolve();
             });
         }else{
            callback(this.linedFilesData);
-        }    
+          // resolve();
+        }   
     }
 
     async startFilesReadSystem(callback){
