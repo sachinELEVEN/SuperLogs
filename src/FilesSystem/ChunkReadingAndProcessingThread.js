@@ -7,7 +7,7 @@ es = require('event-stream');
 const path = require('path')
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
 //if the below flag is true and line contains ascii, that line will be ignored
-const allowOnlyASCII = true;//turning this on makes file reads slow
+const allowOnlyASCII = true;//turning this on makes file reads slow//but saves almost half or more the memory
 //Receiving data from another thread which has the reference to this thread
 const onlySendCompleteChunk = true;//not optimised for true as of now for some reason//if false we will continously send the lines as we generate them else we wait for the complete chunk to load
 parentPort.on('message', (message) => {
