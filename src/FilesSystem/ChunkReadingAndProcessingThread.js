@@ -7,7 +7,7 @@ es = require('event-stream');
 const path = require('path')
 //if this is off, other formats will be supported but will lead to very high memory usage, in non-ascii cases for 1 GB files maybe 2GB be used.
 //if the below flag is true and line contains ascii, that line will be ignored
-const allowOnlyASCII = true;//turning this on makes file reads slow
+const allowOnlyASCII = false;//turning this on makes file reads slow
 //Receiving data from another thread which has the reference to this thread
 parentPort.on('message', (message) => {
     startProcessing(message)

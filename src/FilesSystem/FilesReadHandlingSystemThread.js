@@ -84,8 +84,9 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
              if(message.isLinedFile){
                 
              //   linedFileData[message.fileId] = message.linedFileData
+            
              filesData[message.fileId] = message.linedFileData;//file data is defined
-               // console.log("THESE LINESpp",filesData)//they are getting emptied here #12 IMPORTANT
+               // console.log("THESE LINESppp",filesData)//they are getting emptied here #12 IMPORTANT
                 console.log(`Lined file generation, recieved Chunk No.${message.fileId} -> ${message.linedFileData}`)
                 console.log(`Added to FilesData. file no. ${message.fileId}`)
                 //we should send message to the parent with list of all the files

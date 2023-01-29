@@ -180,7 +180,7 @@ async function readAndProcessChunks(filePath,fileId){
         console.log("/FileChunkingThread: Error in /readAndProcessChunks: There are more refined chunks than threads to handle them. Chunks Count: ",refinedChunks.length, "Thread: ",chunkReadingAndProcessingThreadCount)
         return;
     }
-    let linedFileData= new Array(refinedChunks.length);
+    let linedFileData= new Array(refinedChunks.length).fill(-1);
     
     //we are creating refinedChunks.length number of strings because sometimes chunkReadingAndProcessingThreadCount are more in number
     //which means some of those threads are unused and always in memory - we do not want that.
@@ -217,12 +217,17 @@ async function readAndProcessChunks(filePath,fileId){
                     //we should directly send this to parent
                     //since number of chunks are not that large -> multiple message sending will not take too much extra time
                     //parent.post here //we are sending it as soon as we have it so as to make it as non blocking as possible
+                    
+                   
+                    //IT IS PERFECT TILL HERE
                     linedFileData[message.id] = message.chunk;
                     let linesFilePassingMessage = {
                         'isLinedFile':'yes',
                         'linedFileData':linedFileData,//linedFileData - not sending this as i doubt the message size will grow very big as we start receiving more chunks,//an array containing chunks, which is an array containing lines
                         'fileId':fileId//represents the file part
                       }
+                      //here is the issue i think, because we do not make rows for all chunks in a file, if a chunk is invalid for example
+                     // console.log("aah7h",linedFileData)
                     //  console.log("THESE LINESp",linesFilePassingMessage)
                       //This message does not work if we do not make this method asyn and wait for it otherwise the thread terminates and we do not have any allocations for parent or other memebers.
                     sendMessageToParent(linesFilePassingMessage)
