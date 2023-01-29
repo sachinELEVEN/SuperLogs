@@ -18,7 +18,8 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 let indexBridge = {
   something: (callback) => ipcRenderer.on('something',(callback)),
-  getRuntimeFPGData: () => ipcRenderer.invoke('getRuntimeFPGData')
+  getRuntimeFPGData: () => ipcRenderer.invoke('getRuntimeFPGData'),//attached the startStreaming method to renderer which it can observe
+  streamingRuntimeFPGData: (callback) => ipcRenderer.on('streamingRuntimeFPGData',(callback)),
 }
 
 contextBridge.exposeInMainWorld("indexBridge",indexBridge)

@@ -8,9 +8,9 @@
 
 // func()
 
-window.indexBridge.something((event,icounter)=>{
-    console.log("This is called")
-})
+// window.indexBridge.something((event,icounter)=>{
+//     console.log("This is called")
+// })
 
 
 // const getGridData2 = () =>{

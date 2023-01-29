@@ -79,9 +79,14 @@ slickgrid.render();
 
 */
 
-window.indexBridge.something((event,icounter)=>{
-  console.log("This is new ",icounter)
+// window.indexBridge.something((event,icounter)=>{
+//   console.log("This is new ",icounter)
+// })
+
+window.indexBridge.streamingRuntimeFPGData((event,runtimeFPG)=>{
+  console.log("Streaming runtimeFPG",runtimeFPG)
 })
+//streamingRuntimeFPGData
 
 // window.indexBridge.getRuntimeFPGData((event,data)=>{
 //   console.log("This is data")
@@ -89,16 +94,45 @@ window.indexBridge.something((event,icounter)=>{
 
 
 
-async function getRuntimeFPGData(){
+//  function getRuntimeFPGData(){
 
- let result = await window.indexBridge.getRuntimeFPGData();
- //data = result
- console.log("data is ",result)
-}
+// window.indexBridge.getRuntimeFPGData((result)=>{
+//  //data = result
+//  console.log("data is ")
+  
+// });
 
- getRuntimeFPGData();
+// }
+
+
+//  getRuntimeFPGData();
 
 // const func = async () =>{
 //     const response = await window.versions.getRuntimeFPGData();
 //     console.log("response");
 // }
+// window.indexBridge.getRuntimeFPGData((result) => {
+//   // Handle the result
+//   handleResult(result);
+// });
+
+// function getRuntimeFPGData(){
+//   console.log("now")
+//    window.indexBridge.getRuntimeFPGData();
+
+ 
+
+  
+
+// }
+// function handleResult(result) {
+//   // Do something with the result
+// }
+
+
+const getRuntimeFPGData = async () =>{
+    let data = await window.indexBridge.getRuntimeFPGData()
+      console.log("data is ",data);
+  }
+
+getRuntimeFPGData()

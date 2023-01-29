@@ -21,6 +21,7 @@ class SLSystemFilesReadHandler{
             });
         }else{
            callback(this.linedFilesData);
+            return;
           // resolve();
         }   
     }
@@ -45,6 +46,7 @@ class SLSystemFilesReadHandler{
         fileReadHandlingSystemThread.on('exit', (code) => {
             console.log(`In Main: SUCCESS: Thread Closed: fileReadHandlingSystemThread closed with code ${code}`);
             callback([]);
+            return;
         });
     
     }
