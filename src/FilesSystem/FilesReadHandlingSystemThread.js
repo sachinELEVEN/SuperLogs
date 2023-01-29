@@ -59,9 +59,9 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
             'fileId':i
         }
         fileChunkingThread.postMessage(message);
-        let linedFileData= [];
+       // let linedFileData= [];
         fileChunkingThread.on('message', (message) => {
-            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ",message)
+            console.log("In: fileReadHandlingSystemThread: got message from THREAD: ")
            
             if(message.fileProcessed){
                 //meaning the chunk has been processed so we can resolve
@@ -70,6 +70,7 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
               fileChunkingThreadsCompletedCount+=1;
                if(fileChunkingThreadsCompletedCount==FilePaths.length){
                 //all the chunks have been resolved so we can notify the parent that the file has been processed
+                //console.log("THESE LINESpp2")
                 sendMessageToParent({'filesProcessed':true});//to notify the parent that the chunk has been processed
                 close();
                }
@@ -78,13 +79,14 @@ const fileChunkingThreadsCount = Math.min(Math.ceil(numberOfCPUCores * 0.7), Fil
             if (message.nfcNotifier){//no. of chunks notifier 
                 //this creates an array of size of nof chunks in the file.
                 //Initialising the array as soon as we know how many chunks of this file will be there
-                linedFileData= new Array(message.chunkCount);
+              //  linedFileData= new Array(message.chunkCount);
             }
              if(message.isLinedFile){
                 
-                linedFileData[message.fileId] = message.linedFileData
-                filesData[message.fileId] = linedFileData;
-                console.log(`Lined file generation, recieved Chunk No.${message.id}`)
+             //   linedFileData[message.fileId] = message.linedFileData
+             filesData[message.fileId] = message.linedFileData;//file data is defined
+               // console.log("THESE LINESpp",filesData)//they are getting emptied here #12 IMPORTANT
+                console.log(`Lined file generation, recieved Chunk No.${message.fileId} -> ${message.linedFileData}`)
                 console.log(`Added to FilesData. file no. ${message.fileId}`)
                 //we should send message to the parent with list of all the files
                 //sending the complete fileData it may increase memory because of copying - but doing this 

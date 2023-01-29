@@ -94,6 +94,7 @@ async function startReadingAndProcessing(filePath,startIdx, endIdx, chunkId){
                     'chunk':lines,
                     'id':chunkId
                 }
+               // console.log("THESE LINES",lines)
                  sendMessageToParent(chunkPassingMessage)//this can make the process slow but it is the only way
                  sendMessageToParent({'chunkProcessed':true});//to notify the parent that the chunk has been processed
                 console.timeEnd('ChunkReadingAndProcessing Processing TimeTaken:')
